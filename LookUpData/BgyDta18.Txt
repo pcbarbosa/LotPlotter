@@ -1,0 +1,1219 @@
+184501001$Alangilan
+184501002$Alijis
+184501003$Banago
+184501004$Barangay 1 (Pob.)
+184501005$Barangay 10 (Pob.)
+184501006$Barangay 11 (Pob.)
+184501007$Barangay 12 (Pob.)
+184501008$Barangay 13 (Pob.)
+184501009$Barangay 14 (Pob.)
+184501010$Barangay 15 (Pob.)
+184501011$Barangay 16 (Pob.)
+184501012$Barangay 17 (Pob.)
+184501013$Barangay 18 (Pob.)
+184501014$Barangay 19 (Pob.)
+184501015$Barangay 2 (Pob.)
+184501016$Barangay 20 (Pob.)
+184501017$Barangay 21 (Pob.)
+184501018$Barangay 22 (Pob.)
+184501019$Barangay 23 (Pob.)
+184501020$Barangay 24 (Pob.)
+184501021$Barangay 25 (Pob.)
+184501022$Barangay 26 (Pob.)
+184501023$Barangay 27 (Pob.)
+184501024$Barangay 28 (Pob.)
+184501025$Barangay 29 (Pob.)
+184501026$Barangay 3 (Pob.)
+184501027$Barangay 30 (Pob.)
+184501028$Barangay 31 (Pob.)
+184501029$Barangay 32 (Pob.)
+184501030$Barangay 33 (Pob.)
+184501031$Barangay 34 (Pob.)
+184501032$Barangay 35 (Pob.)
+184501033$Barangay 36 (Pob.)
+184501034$Barangay 37 (Pob.)
+184501035$Barangay 38 (Pob.)
+184501036$Barangay 39 (Pob.)
+184501037$Barangay 4 (Pob.)
+184501038$Barangay 40 (Pob.)
+184501039$Barangay 41 (Pob.)
+184501040$Barangay 5 (Pob.)
+184501041$Barangay 6 (Pob.)
+184501042$Barangay 7 (Pob.)
+184501043$Barangay 8 (Pob.)
+184501044$Barangay 9 (Pob.)
+184501045$Bata
+184501046$Cabug
+184501047$Estefania
+184501048$Felisa
+184501049$Granada
+184501050$Mandalagan
+184501051$Mansilingan
+184501052$Montevista
+184501053$Pahanocoy
+184501054$Punta Taytay
+184501055$Singcang-Airport
+184501056$Sum-ag
+184501057$Taculing
+184501058$Tangub
+184501059$Villamonte
+184501060$Vista Alegre
+184501061$Handumanan
+184502001$Abuanan
+184502002$Alianza
+184502003$Atipuluan
+184502004$Bacong-Montilla
+184502005$Bagroy
+184502006$Balingasag
+184502007$Binubuhan
+184502008$Busay
+184502009$Calumangan
+184502010$Caridad
+184502011$Dulao
+184502012$Ilijan
+184502013$Lag-Asan
+184502014$Ma-ao Barrio
+184502015$Jorge L. Araneta (Ma-ao Central)
+184502016$Mailum
+184502017$Malingin
+184502018$Napoles
+184502019$Pacol
+184502020$Poblacion
+184502021$Sagasa
+184502022$Tabunan
+184502023$Taloc
+184502024$Sampinit
+184503001$Amontay
+184503002$Bagroy
+184503003$Bi-ao
+184503004$Canmoros (Pob.)
+184503005$Enclaro
+184503006$Marina (Pob.)
+184503007$Paglaum (Pob.)
+184503008$Payao
+184503009$Progreso (Pob.)
+184503010$San Jose
+184503011$San Juan (Pob.)
+184503012$San Pedro (Pob.)
+184503013$San Teodoro (Pob.)
+184503014$San Vicente (Pob.)
+184503015$Santo Rosario (Pob.)
+184503016$Santol
+184504001$Andres Bonifacio
+184504002$Banquerohan
+184504003$Barangay 1 Pob. (Zone 1)
+184504004$Barangay 2 Pob. (Zone 2)
+184504005$Barangay 3 Pob. (Zone 3)
+184504006$Barangay 4 Pob. (Zone 4)
+184504007$Barangay 5 Pob. (Zone 5)
+184504008$Barangay 6 Pob. (Zone 6)
+184504009$Burgos
+184504010$Cabahug
+184504011$Cadiz Viejo
+184504012$Caduha-an
+184504013$Celestino Villacin
+184504014$Daga
+184504015$V. F. Gustilo
+184504016$Jerusalem
+184504017$Luna
+184504018$Mabini
+184504019$Magsaysay
+184504021$Sicaba
+184504022$Tiglawigan
+184504023$Tinampa-an
+184505001$Agpangi
+184505002$Ani-e
+184505003$Bagacay
+184505004$Bantayanon
+184505005$Buenavista
+184505006$Cabungahan
+184505007$Calampisawan
+184505008$Cambayobo
+184505009$Castellano
+184505010$Cruz
+184505011$Dolis
+184505012$Hilub-Ang
+184505013$Hinab-Ongan
+184505014$Ilaya
+184505015$Laga-an
+184505016$Lalong
+184505017$Lemery
+184505018$Lipat-on
+184505019$Lo-ok (Pob.)
+184505020$Ma-aslob
+184505021$Macasilao
+184505022$Malanog
+184505023$Malatas
+184505024$Marcelo
+184505025$Mina-utok
+184505026$Menchaca
+184505027$Minapasuk
+184505028$Mahilum
+184505029$Paghumayan
+184505030$Pantao
+184505031$Patun-an
+184505032$Pinocutan
+184505034$Refugio
+184505035$San Benito
+184505036$San Isidro
+184505037$Suba (Pob.)
+184505038$Telim
+184505039$Tigbao
+184505040$Tigbon
+184505041$Winaswasan
+184506001$Agboy
+184506002$Banga
+184506003$Cabia-an
+184506004$Caningay
+184506005$Gatuslao
+184506006$Haba
+184506007$Payauan
+184506008$Poblacion East
+184506009$Poblacion West
+184507001$Abaca
+184507002$Baclao
+184507004$Poblacion
+184507007$Basak
+184507008$Bulata
+184507009$Caliling
+184507010$Camalanda-an
+184507012$Camindangan
+184507013$Elihan
+184507014$Guiljungan
+184507015$Inayawan
+184507016$Isio
+184507017$Linaon
+184507018$Lumbia
+184507020$Mambugsay
+184507021$Man-Uling
+184507022$Masaling
+184507023$Molobolo
+184507025$Sura
+184507027$Talacdan
+184507028$Tambad
+184507029$Tiling
+184507030$Tomina
+184507031$Tuyom
+184507032$Yao-yao
+184508001$Alacaygan
+184508002$Alicante
+184508003$Poblacion I (Barangay 1)
+184508004$Poblacion II (Barangay 2)
+184508005$Poblacion III (Barangay 3)
+184508006$Batea
+184508007$Consing
+184508008$Cudangdang
+184508009$Damgo
+184508010$Gahit
+184508011$Canlusong
+184508012$Latasan
+184508013$Madalag
+184508014$Manta-angan
+184508015$Nanca
+184508016$Pasil
+184508017$San Isidro
+184508018$San Jose
+184508019$Santo Niño
+184508020$Tabigue
+184508021$Tanza
+184508022$Tuburan
+184508023$Tomongtong
+184509001$Alimango
+184509002$Balintawak (Pob.)
+184509003$Magsaysay (Binabongol)
+184509004$Binaguiohan
+184509005$Buenavista
+184509006$Cervantes
+184509007$Dian-ay
+184509008$Hacienda Fe
+184509009$Jonobjonob
+184509010$Japitan
+184509011$Langub
+184509012$Libertad
+184509013$Mabini
+184509014$Malasibog
+184509015$Paitan
+184509016$Pinapugasan
+184509017$Old Poblacion
+184509018$Rizal
+184509019$Tamlang
+184509020$Udtongan
+184509021$Washington
+184510001$Aguisan
+184510002$Buenavista
+184510003$Cabadiangan
+184510004$Cabanbanan
+184510005$Carabalan
+184510006$Caradio-an
+184510007$Libacao
+184510008$Mambagaton
+184510009$Nabali-an
+184510010$Mahalang
+184510011$San Antonio
+184510012$Sara-et
+184510013$Su-ay
+184510014$Talaban
+184510015$To-oy
+184510016$Barangay I (Pob.)
+184510017$Barangay II (Pob.)
+184510018$Barangay III (Pob.)
+184510019$Barangay IV (Pob.)
+184511001$Anahaw
+184511002$Aranda
+184511003$Barangay I (Pob.)
+184511004$Barangay II (Pob.)
+184511005$Barangay III (Pob.)
+184511006$Barangay IV (Pob.)
+184511007$Bato
+184511009$Calapi
+184511010$Camalobalo
+184511011$Camba-og
+184511012$Cambugsa
+184511013$Candumarao
+184511014$Gargato
+184511015$Himaya
+184511016$Miranda
+184511017$Nanunga
+184511018$Narauis
+184511019$Palayog
+184511020$Paticui
+184511021$Pilar
+184511022$Quiwi
+184511023$Tagda
+184511024$Tuguis
+184511025$Baga-as
+184512001$Alim
+184512002$Asia
+184512003$Bacuyangan
+184512004$Barangay I (Pob.)
+184512005$Barangay II (Pob.)
+184512006$Bulwangan
+184512007$Culipapa
+184512008$Damutan
+184512009$Daug
+184512010$Po-ok
+184512011$San Rafael
+184512012$Sangke
+184512013$Talacagay
+184513001$Andulauan
+184513002$Balicotoc
+184513004$Bocana
+184513006$Calubang
+184513007$Canlamay
+184513008$Consuelo
+184513009$Dancalan
+184513010$Delicioso
+184513011$Galicia
+184513012$Manalad
+184513013$Pinggot
+184513014$Barangay I (Pob.)
+184513015$Barangay II (Pob.)
+184513016$Tabu
+184513018$Vista Alegre
+184514001$Amin
+184514002$Banogbanog
+184514003$Bulad
+184514004$Bungahin
+184514005$Cabcab
+184514006$Camangcamang
+184514007$Camp Clark
+184514008$Cansalongon
+184514009$Guintubhan
+184514010$Libas
+184514011$Limalima
+184514012$Makilignit
+184514013$Mansablay
+184514014$Maytubig
+184514015$Panaquiao
+184514016$Barangay 1 (Pob.)
+184514017$Barangay 2 (Pob.)
+184514018$Barangay 3 (Pob.)
+184514019$Barangay 4 (Pob.)
+184514020$Barangay 5 (Pob.)
+184514021$Barangay 6 (Pob.)
+184514022$Barangay 7 (Pob.)
+184514023$Barangay 8 (Pob.)
+184514024$Barangay 9 (Pob.)
+184514025$Riverside
+184514026$Rumirang
+184514027$San Agustin
+184514028$Sebucawan
+184514029$Sikatuna
+184514030$Tinongan
+184515001$Bantayan
+184515002$Binicuil
+184515003$Camansi
+184515004$Camingawan
+184515005$Camugao
+184515006$Carol-an
+184515007$Daan Banua
+184515008$Hilamonan
+184515009$Inapoy
+184515010$Linao
+184515011$Locotan
+184515012$Magballo
+184515013$Oringao
+184515014$Orong
+184515015$Pinaguinpinan
+184515016$Barangay 5 (Pob.)
+184515017$Barangay 6 (Pob.)
+184515018$Barangay 7 (Pob.)
+184515019$Barangay 8 (Pob.)
+184515020$Barangay 9 (Pob.)
+184515021$Barangay 1 (Pob.)
+184515023$Barangay 2 (Pob.)
+184515024$Barangay 3 (Pob.)
+184515025$Barangay 4 (Pob.)
+184515026$Salong
+184515027$Tabugon
+184515028$Tagoc
+184515029$Talubangi
+184515030$Tampalon
+184515031$Tan-Awan
+184515032$Tapi
+184515033$Tagukon
+184516001$Ara-al
+184516002$Ayungon
+184516003$Balabag
+184516004$Batuan
+184516005$Roberto S. Benedicto (Consuelo)
+184516006$Cubay
+184516007$Haguimit
+184516008$La Granja
+184516009$Nagasi
+184516010$Barangay I (Pob.)
+184516011$Barangay II (Pob.)
+184516012$Barangay III (Pob.)
+184516013$San Miguel
+184516014$Yubo
+184517001$Biaknabato
+184517002$Cabacungan
+184517004$Cabagnaan
+184517005$Camandag
+184517006$Lalagsan
+184517007$Manghanoy
+184517008$Mansalanao
+184517009$Masulog
+184517010$Nato
+184517011$Puso
+184517012$Robles (Pob.)
+184517013$Sag-Ang
+184517016$Talaptap
+184518001$Chambery
+184518002$Barangay I (Pob.)
+184518003$Barangay I-A (Pob.)
+184518004$Barangay I-B (Pob.)
+184518005$Barangay II (Pob.)
+184518006$Barangay II-A (Pob.)
+184518007$Punta Mesa
+184518008$Punta Salong
+184518009$Purisima
+184518010$San Pablo
+184518011$Santa Teresa
+184518012$Tortosa
+184519002$Barangay 1 (Pob.)
+184519003$Barangay 2 (Pob.)
+184519004$Barangay 3 (Pob.)
+184519005$Barangay 4 (Pob.)
+184519006$Barangay 5 (Pob.)
+184519007$Barangay 6 (Pob.)
+184519008$Barangay 7 (Pob.)
+184519009$Crossing Magallon
+184519010$Guinpana-an
+184519011$Inolingan
+184519012$Macagahay
+184519013$Magallon Cadre
+184519014$Montilla
+184519015$Odiong
+184519016$Quintin Remo
+184520001$Abo-abo
+184520002$Alegria
+184520003$Amayco
+184520004$Zone I (Pob.)
+184520005$Zone II (Pob.)
+184520006$Zone III (Pob.)
+184520007$Zone IV (Pob.)
+184520008$Zone V (Pob.)
+184520009$Blumentritt
+184520010$Buenavista
+184520011$Caliban
+184520012$Canlandog
+184520013$Cansilayan
+184520014$Damsite
+184520015$Iglau-an
+184520018$Lopez Jaena
+184520019$Minoyan
+184520020$Pandanon
+184520021$San Miguel
+184520022$Santa Cruz
+184520023$Santa Rosa
+184520024$Salvacion
+184520025$Talotog
+184521001$Antipolo
+184521002$Barangay I (Pob.)
+184521003$Barangay II (Pob.)
+184521004$Barangay III (Pob.)
+184521006$Buenavista Gibong
+184521007$Buenavista Rizal
+184521008$Burgos
+184521009$Cambarus
+184521010$Canroma
+184521011$Don Salvador Benedicto (Carmen)
+184521012$General Malvar
+184521013$Gomez
+184521014$M. H. Del Pilar
+184521015$Mabini
+184521016$Miranda
+184521017$Pandan
+184521018$Recreo
+184521019$San Isidro
+184521020$San Juan
+184521021$Zamora
+184522001$Barangay Zone 1-A (Pob.)
+184522002$Barangay Zone 4-A (Pob.)
+184522003$Barangay Zone 1 (Pob.)
+184522004$Barangay Zone 2 (Pob.)
+184522005$Barangay Zone 3 (Pob.)
+184522006$Barangay Zone 4 (Pob.)
+184522007$Barangay Zone 5 (Pob.)
+184522008$Barangay Zone 6 (Pob.)
+184522009$Barangay Zone 7 (Pob.)
+184522010$Canjusa
+184522011$Crossing Pulupandan
+184522012$Culo
+184522013$Mabini
+184522014$Pag-ayon
+184522015$Palaka Norte
+184522016$Palaka Sur
+184522017$Patic
+184522018$Tapong
+184522019$Ubay
+184522020$Utod
+184523001$Andres Bonifacio
+184523002$Bato
+184523003$Baviera
+184523004$Bulanon
+184523005$Campo Himoga-an
+184523006$Campo Santiago
+184523007$Colonia Divina
+184523008$Fabrica
+184523009$General Luna
+184523010$Himoga-an Baybay
+184523011$Lopez Jaena
+184523012$Malubon
+184523013$Makiling
+184523014$Molocaboc
+184523015$Old Sagay
+184523016$Paraiso
+184523017$Plaridel
+184523018$Poblacion I (Barangay 1)
+184523019$Poblacion II (Barangay 2)
+184523020$Puey
+184523021$Rizal
+184523022$Taba-ao
+184523023$Tadlong
+184523025$Vito
+184523026$Rafaela Barrera
+184524001$Bagonbon
+184524002$Buluangan
+184524004$Codcod
+184524005$Ermita
+184524006$Guadalupe
+184524008$Nataban
+184524009$Palampas
+184524010$Barangay I (Pob.)
+184524011$Barangay II (Pob.)
+184524012$Barangay III (Pob.)
+184524013$Barangay IV (Pob.)
+184524014$Barangay V (Pob.)
+184524015$Barangay VI (Pob.)
+184524016$Prosperidad
+184524017$Punao
+184524018$Quezon
+184524019$Rizal
+184524020$San Juan
+184525001$Bagonawa
+184525002$Baliwagan
+184525003$Batuan
+184525004$Guintorilan
+184525005$Nayon
+184525006$Poblacion
+184525007$Sibucao
+184525008$Tabao Baybay
+184525009$Tabao Rizal
+184525010$Tibsoc
+184526001$Balaring
+184526002$Barangay I (Pob.)
+184526003$Barangay II (Pob.)
+184526004$Barangay III (Pob.)
+184526005$Barangay IV (Pob.)
+184526006$Barangay V (Pob.)
+184526007$Barangay VI Pob. (Hawaiian)
+184526008$Eustaquio Lopez
+184526010$Guimbala-on
+184526011$Guinhalaran
+184526012$Kapitan Ramon
+184526013$Lantad
+184526015$Mambulac
+184526016$Rizal
+184526017$Bagtic
+184526018$Patag
+184527001$Barangay 1 (Pob.)
+184527002$Barangay 2 (Pob.)
+184527003$Barangay 3 (Pob.)
+184527004$Barangay 4 (Pob.)
+184527005$Barangay 5 (Pob.)
+184527006$Cabadiangan
+184527007$Camindangan
+184527008$Canturay
+184527009$Cartagena
+184527010$Cayhagan
+184527011$Gil Montilla
+184527012$Mambaroto
+184527013$Manlucahoc
+184527014$Maricalum
+184527015$Nabulao
+184527016$Nauhang
+184527017$San Jose
+184528001$Bubog
+184528002$Cabatangan
+184528003$Zone 4-A (Pob.)
+184528004$Zone 4 (Pob.)
+184528007$Concepcion
+184528010$Dos Hermanas
+184528011$Efigenio Lizares
+184528012$Zone 7 (Pob.)
+184528013$Zone 14-B (Pob.)
+184528015$Zone 12-A (Pob.)
+184528018$Zone 10 (Pob.)
+184528020$Zone 5 (Pob.)
+184528021$Zone 16 (Pob.)
+184528023$Matab-ang
+184528025$Zone 9 (Pob.)
+184528027$Zone 6 (Pob.)
+184528029$Zone 14 (Pob.)
+184528030$San Fernando
+184528032$Zone 15 (Pob.)
+184528033$Zone 14-A (Pob.)
+184528034$Zone 11 (Pob.)
+184528035$Zone 8 (Pob.)
+184528038$Zone 12 (Pob.)
+184528040$Zone 1 (Pob.)
+184528041$Zone 2 (Pob.)
+184528042$Zone 3 (Pob.)
+184528043$Katilingban
+184529001$Bandila
+184529002$Bug-ang
+184529003$General Luna
+184529004$Magticol
+184529005$Poblacion
+184529006$Salamanca
+184529007$San Isidro
+184529008$San Jose
+184529009$Tabun-ac
+184530001$Alijis
+184530002$Ayungon
+184530003$Bagumbayan
+184530004$Batuan
+184530005$Bayabas
+184530006$Central Tabao
+184530007$Doldol
+184530008$Guintorilan
+184530010$Lacaron
+184530011$Mabini
+184530012$Pacol
+184530013$Palaka
+184530014$Paloma
+184530015$Poblacion
+184530016$Sagua Banua
+184530017$Tabao Proper
+184531004$Barangay I (Pob.)
+184531005$Barangay II (Pob.)
+184531006$Barangay III (Pob.)
+184531007$Barangay IV (Pob.)
+184531008$Barangay V (Pob.)
+184531009$Barangay VI (Pob.)
+184531010$Barangay VII (Pob.)
+184531011$Barangay VIII (Pob.)
+184531012$Barangay IX (Daan Banwa)
+184531013$Barangay X (Estado)
+184531014$Barangay XI (Gawahon)
+184531015$Barangay XII
+184531016$Barangay XIII
+184531017$Barangay XIV
+184531018$Barangay XV
+184531019$Barangay XV-A
+184531020$Barangay XVI
+184531021$Barangay XVI-A
+184531022$Barangay XVII
+184531023$Barangay XVIII
+184531024$Barangay XVIII-A
+184531025$Barangay XIX
+184531026$Barangay XIX-A
+184531027$Barangay XX
+184531028$Barangay XXI
+184531029$Barangay VI-A
+184532001$Bago (Lalung)
+184532002$Bagong Silang (Marcelo)
+184532003$Bunga
+184532004$Igmaya-an
+184532005$Kumaliskis
+184532006$Pandanon
+184532007$Pinowayan (Prosperidad)
+184601001$Bio-os
+184601002$Jantianon
+184601003$Jugno
+184601004$Mag-abo
+184601005$Poblacion
+184601006$Silab
+184601007$Tambojangin
+184601008$Tandayag
+184602001$Amdus
+184602002$Jandalamanon
+184602003$Anibong
+184602004$Atabay
+184602005$Awa-an
+184602006$Ban-ban
+184602007$Calagcalag
+184602008$Candana-ay
+184602009$Carol-an
+184602010$Gomentoc
+184602011$Inacban
+184602012$Iniban
+184602013$Kilaban
+184602014$Lamigan
+184602015$Maaslum
+184602016$Mabato
+184602017$Manogtong
+184602018$Nabhang
+184602019$Tambo
+184602020$Tampocon I
+184602021$Tampocon II
+184602022$Tibyawan
+184602023$Tiguib
+184602024$Poblacion
+184603001$Balayagmanok
+184603002$Banilad
+184603003$Buntis
+184603004$Buntod
+184603005$Calangag
+184603006$Combado
+184603007$Doldol
+184603008$Isugan
+184603009$Liptong
+184603010$Lutao
+184603011$Magsuhot
+184603012$Malabago
+184603013$Mampas
+184603014$North Poblacion
+184603015$Sacsac
+184603016$San Miguel
+184603017$South Poblacion
+184603018$Sulodpan
+184603019$Timbanga
+184603020$Timbao
+184603021$Tubod
+184603022$West Poblacion
+184604001$Barangay I (Pob.)
+184604002$Barangay II (Pob.)
+184604003$Basak
+184604004$Biñohon
+184604005$Cabanlutan
+184604006$Calasga-an
+184604007$Cambagahan
+184604008$Cambaguio
+184604009$Cambanjao
+184604010$Cambuilao
+184604011$Canlargo
+184604012$Capiñahan
+184604013$Consolacion
+184604014$Dansulan
+184604015$Hangyad
+184604017$La Paz
+184604018$Lo-oc
+184604019$Lonoy
+184604020$Mabunao
+184604021$Manlipac
+184604022$Mansangaban
+184604023$Okiot
+184604024$Olympia
+184604025$Panala-an
+184604026$Panam-angan
+184604027$Rosario
+184604028$Sab-ahan
+184604029$San Isidro
+184604030$Katacgahan (Tacgahan)
+184604031$Tagpo
+184604032$Talungon
+184604033$Tamisu
+184604034$Tamogong
+184604035$Tangculogan
+184604036$Valencia
+184605001$Actin
+184605002$Bal-os
+184605003$Bongalonan
+184605004$Cabalayongan
+184605005$Cabatuanan
+184605006$Linantayan
+184605007$Maglinao
+184605008$Nagbo-alao
+184605009$Olandao
+184605010$Poblacion
+184606001$Ali-is
+184606002$Banaybanay
+184606003$Banga
+184606004$Villasol (Bato)
+184606005$Boyco
+184606006$Bugay
+184606007$Cansumalig
+184606008$Dawis
+184606009$Kalamtukan
+184606010$Kalumboyan
+184606011$Malabugas
+184606012$Mandu-ao
+184606013$Maninihon
+184606014$Minaba
+184606015$Nangka
+184606016$Narra
+184606017$Pagatban
+184606018$Poblacion
+184606019$San Jose
+184606020$San Miguel
+184606021$San Roque
+184606022$Suba (Pob.)
+184606023$Tabuan
+184606024$Tayawan
+184606025$Tinago (Pob.)
+184606026$Ubos (Pob.)
+184606027$Villareal
+184606028$San Isidro
+184607001$Atotes
+184607002$Batangan
+184607003$Bulod
+184607004$Cabcaban
+184607005$Cabugan
+184607006$Camudlas
+184607007$Canluto
+184607008$Danao
+184607009$Danawan
+184607010$Domolog
+184607011$Malaga
+184607012$Manseje
+184607013$Matobato
+184607014$Nagcasunog
+184607015$Nalundan
+184607016$Pangalaycayan
+184607017$Peñahan
+184607018$Poblacion (Payabon)
+184607019$Salong
+184607020$Tagaytay
+184607021$Tinaogan
+184607022$Tubod
+184608001$Bayog
+184608002$Binalbagan
+184608003$Bucalan (East Budsalan)
+184608004$Linothangan
+184608005$Lumapao
+184608006$Malaiba
+184608007$Masulog
+184608008$Panubigan
+184608009$Mabigo (Pob.)
+184608010$Pula
+184608011$Budlasan (West Budlasan)
+184608012$Ninoy Aquino
+184609001$Anahawan
+184609002$Apo Island
+184609003$Bagacay
+184609004$Baslay
+184609005$Batuhon Dacu
+184609006$Boloc-boloc
+184609007$Bulak
+184609008$Bunga
+184609009$Casile
+184609010$Libjo
+184609011$Lipayo
+184609012$Maayongtubig
+184609013$Mag-aso
+184609014$Magsaysay
+184609015$Malongcay Dacu
+184609016$Masaplod Norte
+184609017$Masaplod Sur
+184609018$Panubtuban
+184609019$Poblacion I
+184609020$Poblacion II
+184609021$Poblacion III
+184609022$Tugawe
+184609023$Tunga-tunga
+184610001$Bagacay
+184610002$Bajumpandan
+184610003$Balugo
+184610004$Banilad
+184610005$Bantayan
+184610006$Batinguel
+184610007$Bunao
+184610008$Cadawinonan
+184610009$Calindagan
+184610010$Camanjac
+184610011$Candau-ay
+184610012$Cantil-e
+184610013$Daro
+184610014$Junob
+184610015$Looc
+184610016$Mangnao-Canal
+184610017$Motong
+184610018$Piapi
+184610019$Poblacion No. 1 (Barangay 1)
+184610020$Poblacion No. 2 (Barangay 2)
+184610021$Poblacion No. 3 (Barangay 3)
+184610022$Poblacion No. 4 (Barangay 4)
+184610023$Poblacion No. 5 (Barangay 5)
+184610024$Poblacion No. 6 (Barangay 6)
+184610025$Poblacion No. 7 (Barangay 7)
+184610026$Poblacion No. 8 (Barangay 8)
+184610027$Pulantubig
+184610028$Tabuctubig
+184610029$Taclobo
+184610030$Talay
+184611001$Bakid
+184611002$Balogo
+184611003$Banwaque
+184611004$Basak
+184611005$Binobohan
+184611006$Buenavista
+184611007$Bulado
+184611008$Calamba
+184611009$Calupa-an
+184611010$Hibaiyo
+184611011$Hilaitan
+184611012$Hinakpan
+184611013$Humayhumay
+184611014$Imelda
+184611015$Kagawasan
+184611016$Linantuyan
+184611017$Luz
+184611018$Mabunga
+184611019$Mckinley
+184611020$Nagsaha
+184611021$Magsaysay
+184611022$Malusay
+184611023$Maniak
+184611025$Padre Zamora
+184611026$Plagatasanon
+184611027$Planas
+184611028$Poblacion
+184611029$Sandayao
+184611030$Tacpao
+184611031$Tinayunan Beach
+184611032$Tinayunan Hill
+184611033$Trinidad
+184611034$Villegas
+184612001$Aglahug
+184612002$Agutayon
+184612003$Apanangon
+184612004$Bae
+184612005$Bala-as
+184612006$Bangcal
+184612007$Banog
+184612008$Buto
+184612009$Cabang
+184612010$Camandayon
+184612011$Cangharay
+184612012$Canlahao
+184612013$Dayoyo
+184612014$Eli
+184612015$Lacaon
+184612016$Mahanlud
+184612017$Malabago
+184612018$Mambaid
+184612019$Mongpong
+184612020$Owacan
+184612021$Pacuan
+184612022$Panglaya-an
+184612023$North Poblacion
+184612024$South Poblacion
+184612025$Polopantao
+184612026$Sampiniton
+184612027$Talamban
+184612028$Tamao
+184613001$Aniniaw
+184613002$Aya
+184613003$Bagtic
+184613004$Biga-a
+184613005$Busilak
+184613006$Cangabo
+184613007$Cantupa
+184613008$Eli
+184613009$Guihob
+184613010$Kansumandig
+184613011$Mambulod
+184613012$Mandapaton
+184613013$Manghulyawon
+184613014$Manluminsag
+184613015$Mapalasan
+184613016$Maragondong
+184613017$Martilo
+184613018$Nasungan
+184613019$Pacuan
+184613020$Pangca
+184613021$Pisong
+184613022$Pitogo
+184613023$Poblacion North
+184613024$Poblacion South
+184613025$San Jose
+184613026$Solongon
+184613027$Tala-on
+184613028$Talayong
+184613029$Elecia (Talostos)
+184614001$Abis
+184614002$Arebasore
+184614003$Bagtic
+184614005$Banban
+184614006$Barras
+184614007$Bato
+184614008$Bugnay
+184614009$Bulibulihan
+184614010$Bulwang
+184614011$Campanun-an
+184614012$Canggohob
+184614013$Cansal-ing
+184614014$Dagbasan
+184614015$Dahile
+184614016$Himocdongon
+184614017$Hagtu
+184614018$Inapoy
+184614019$Lamdas
+184614020$Lumbangan
+184614021$Luyang
+184614022$Manlingay
+184614023$Mayaposi
+184614024$Napasu-an
+184614025$New Namangka
+184614026$Old Namangka
+184614027$Pandanon
+184614028$Paniabonan
+184614029$Pantao
+184614030$Poblacion
+184614031$Samac
+184614032$Tadlong
+184614033$Tara
+184615001$Alangilanan
+184615002$Bagtic
+184615003$Balaas
+184615004$Bantolinao
+184615005$Bolisong
+184615006$Butong
+184615007$Campuyo
+184615008$Candabong
+184615009$Concepcion
+184615010$Dungo-an
+184615011$Kauswagan
+184615012$Libjo
+184615013$Lamogong
+184615015$Maaslum
+184615016$Mandalupang
+184615017$Panciao
+184615018$Poblacion
+184615019$Sac-sac
+184615020$Salvacion
+184615021$San Isidro
+184615022$San Jose
+184615023$Santa Monica
+184615024$Suba
+184615025$Sundo-an
+184615026$Tanglad
+184615027$Tubod
+184615028$Tupas
+184616001$Abante
+184616002$Balayong
+184616003$Banawe
+184616004$Datagon
+184616005$Fatima
+184616007$Inawasan
+184616008$Magsusunog
+184616009$Malalangsi
+184616010$Mamburao
+184616011$Mangoto
+184616012$Poblacion
+184616013$San Isidro
+184616014$Santa Agueda
+184616015$Simborio
+184616016$Yupisan
+184616017$Calicanan
+184617001$Basak
+184617002$Basiao
+184617004$Cambaloctot
+184617005$Cancawas
+184617006$Janayjanay
+184617007$Jilocon
+184617008$Naiba
+184617009$Poblacion
+184617010$San Roque
+184617011$Santo Niño
+184617012$Señora Ascion (Calo)
+184617013$Siapo
+184617014$Tampi
+184617015$Tapon Norte
+184618001$Alangilan
+184618002$Amio
+184618003$Buenavista
+184618004$Kabulacan
+184618006$Caigangan
+184618008$Caranoche
+184618009$Cawitan
+184618010$Fatima
+184618011$Mabuhay
+184618012$Manalongon
+184618013$Mansagomayon
+184618014$Milagrosa
+184618015$Nagbinlod
+184618016$Nagbalaye
+184618017$Obat
+184618019$Poblacion
+184618020$San Francisco
+184618021$San Jose
+184618022$San Miguel
+184618023$San Pedro
+184618024$Santo Rosario
+184618025$Talalak
+184619001$Albiga
+184619002$Apoloy
+184619003$Bonawon
+184619004$Bonbonon
+184619005$Cabangahan
+184619007$Canaway
+184619008$Casala-an
+184619009$Caticugan
+184619010$Datag
+184619011$Giliga-on
+184619012$Inalad
+184619013$Malabuhan
+184619014$Maloh
+184619015$Mantiquil
+184619016$Mantuyop
+184619017$Napacao
+184619018$Poblacion I
+184619019$Poblacion II
+184619020$Poblacion III
+184619021$Poblacion IV
+184619022$Salag
+184619023$San Jose
+184619024$Sandulot
+184619025$Si-it
+184619026$Sumaliring
+184619027$Tayak
+184620001$Agan-an
+184620002$Ajong
+184620003$Balugo
+184620004$Bolocboloc
+184620005$Calabnugan
+184620006$Cangmating
+184620007$Enrique Villanueva
+184620008$Looc
+184620009$Magatas
+184620010$Maningcao
+184620011$Maslog
+184620012$Poblacion
+184620013$San Antonio
+184620014$Tubigon
+184620015$Tubtubon
+184621001$Azagra
+184621002$Bahi-an
+184621003$Luca
+184621004$Manipis
+184621005$Novallas
+184621006$Obogon
+184621007$Pal-ew
+184621008$Poblacion I (Barangay 1)
+184621009$Poblacion II (Barangay 2)
+184621010$Poblacion III (Barangay 3)
+184621011$Poblacion IV (Barangay 4)
+184621012$Poblacion V (Barangay 5)
+184621013$Poblacion VI (Barangay 6)
+184621014$Poblacion VII (Barangay 7)
+184621015$Poblacion VIII (Barangay 8)
+184621016$Poblacion IX (Barangay 9)
+184621017$Polo
+184621018$San Isidro
+184621019$San Jose
+184621020$San Miguel
+184621021$Santa Cruz Nuevo
+184621022$Santa Cruz Viejo
+184621023$Santo Niño
+184621025$Tugas
+184622001$Bacong
+184622002$Bago
+184622003$Banga
+184622004$Cabulotan
+184622005$Cambaye
+184622006$Dalaupon
+184622007$Guincalaban
+184622008$Ilaya-Tayasan
+184622009$Jilabangan
+184622010$Lag-it
+184622011$Linao
+184622012$Lutay
+184622013$Maglihe
+184622014$Matauta
+184622015$Magtuhao
+184622016$Matuog
+184622017$Numnum
+184622018$Palaslan
+184622019$Pindahan
+184622020$Pinalubngan
+184622021$Pinocawan
+184622022$Poblacion
+184622023$Santa Cruz
+184622024$Saying
+184622025$Suquib
+184622026$Tamao
+184622027$Tambulan
+184622028$Tanlad
+184623001$Apolong
+184623002$Balabag East
+184623003$Balabag West
+184623004$Balayagmanok
+184623005$Balili
+184623006$Balugo
+184623007$Bongbong
+184623008$Bong-ao
+184623009$Calayugan
+184623010$Cambucad
+184623011$Dobdob
+184623012$Jawa
+184623013$Caidiocan
+184623014$Liptong
+184623015$Lunga
+184623016$Malabo
+184623017$Malaunay
+184623018$Mampas
+184623019$Palinpinon
+184623020$North Poblacion
+184623021$South Poblacion
+184623022$Puhagan
+184623023$Pulangbato
+184623024$Sagbang
+184624001$Bagawines
+184624002$Bairan
+184624003$Don Espiridion Villegas
+184624004$Guba
+184624005$Cabulihan
+184624006$Macapso
+184624007$Malangsa
+184624008$Molobolo
+184624009$Maglahos
+184624010$Pinocawan
+184624011$Poblacion
+184624012$Puan
+184624013$Tabon
+184624014$Tagbino
+184624015$Ulay
+184625001$Basac
+184625002$Calango
+184625003$Lotuban
+184625004$Malongcay Diot
+184625005$Maluay
+184625006$Mayabon
+184625007$Nabago
+184625008$Nasig-id
+184625009$Najandig
+184625010$Poblacion

@@ -1,0 +1,18 @@
+[general]
+name=Lot Plotter
+qgisMinimumVersion=3.0
+description=Plot lot boundaries from bearing and distance measurements
+version=1.0
+author=Patrick
+email=
+url=
+changelog=Initial release - creates polygon lots from bearing/distance inputs
+
+tags=cadastral,surveying,lot,plotting
+
+homepage=
+tracker=
+repository=
+icon=icon.png
+experimental=False
+deprecated=False
