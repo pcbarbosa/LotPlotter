@@ -4,7 +4,8 @@ import math
 import re
 from qgis.PyQt import QtWidgets, uic
 from qgis.PyQt.QtWidgets import QFileDialog
-from qgis.PyQt.QtCore import QVariant
+from qgis.PyQt.QtCore import QEvent, Qt, QVariant
+from qgis.PyQt.QtGui import QKeySequence
 from qgis.core import QgsProject, QgsVectorLayer, QgsFeature, QgsGeometry, QgsPointXY, QgsField
 from qgis.gui import QgisInterface
 
@@ -521,6 +522,7 @@ class LotPlotterDialog(QtWidgets.QDialog, FORM_CLASS):
         self.lookup_provinces = load_provinces()
         self.current_lot_id = self.generate_lot_id()
         self.setup_project_detail_sections()
+        self.setup_table_paste_controls()
         
         # Connect buttons
         self.add_corner_btn.clicked.connect(self.add_corner)
@@ -598,6 +600,24 @@ class LotPlotterDialog(QtWidgets.QDialog, FORM_CLASS):
 
         self.province_detail_combo.currentIndexChanged.connect(self.on_detail_province_changed)
         self.municipality_combo.currentIndexChanged.connect(self.on_detail_municipality_changed)
+
+    def setup_table_paste_controls(self):
+        self.table.installEventFilter(self)
+        self.table.setSelectionMode(QtWidgets.QAbstractItemView.ExtendedSelection)
+        self.table.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectItems)
+        self.paste_rows_btn = QtWidgets.QPushButton("Paste Rows")
+        self.paste_rows_btn.clicked.connect(self.paste_rows_from_clipboard)
+        try:
+            self.horizontalLayout_2.insertWidget(2, self.paste_rows_btn)
+        except Exception:
+            self.add_corner_btn.parentWidget().layout().insertWidget(2, self.paste_rows_btn)
+
+    def eventFilter(self, watched, event):
+        if watched is self.table and event.type() == QEvent.KeyPress:
+            if event.matches(QKeySequence.Paste):
+                self.paste_rows_from_clipboard()
+                return True
+        return super().eventFilter(watched, event)
         
     def add_corner(self):
         """Add a new corner row to the table"""
@@ -628,6 +648,70 @@ class LotPlotterDialog(QtWidgets.QDialog, FORM_CLASS):
     def refresh_corner_numbers(self):
         for row in range(self.table.rowCount()):
             self.table.setVerticalHeaderItem(row, QtWidgets.QTableWidgetItem(str(row + 1)))
+
+    def paste_rows_from_clipboard(self):
+        text = QtWidgets.QApplication.clipboard().text()
+        rows = self.parse_pasted_bearing_distance_rows(text)
+        if not rows:
+            QtWidgets.QMessageBox.warning(
+                self,
+                "Paste Rows",
+                "Clipboard does not contain bearing/distance rows. Copy two columns from the spreadsheet and try again.",
+            )
+            return
+
+        start_row = self.table.currentRow()
+        if start_row < 0:
+            start_row = self.first_empty_table_row()
+        if start_row < 0:
+            start_row = self.table.rowCount()
+
+        while self.table.rowCount() < start_row + len(rows):
+            self.add_corner()
+
+        for offset, (bearing, distance) in enumerate(rows):
+            row = start_row + offset
+            self.table.setItem(row, 0, QtWidgets.QTableWidgetItem(bearing))
+            self.table.setItem(row, 1, QtWidgets.QTableWidgetItem(distance))
+        self.refresh_corner_numbers()
+        self.results_text.setText(f"Pasted {len(rows)} bearing/distance row(s).")
+
+    def first_empty_table_row(self):
+        for row in range(self.table.rowCount()):
+            bearing_item = self.table.item(row, 0)
+            distance_item = self.table.item(row, 1)
+            bearing_blank = bearing_item is None or not bearing_item.text().strip()
+            distance_blank = distance_item is None or not distance_item.text().strip()
+            if bearing_blank and distance_blank:
+                return row
+        return -1
+
+    def parse_pasted_bearing_distance_rows(self, text):
+        rows = []
+        for raw_line in str(text or "").splitlines():
+            line = raw_line.strip()
+            if not line:
+                continue
+            cells = [cell.strip() for cell in re.split(r"\t|,", line) if cell.strip()]
+            if len(cells) < 2:
+                cells = [cell.strip() for cell in re.split(r"\s{2,}", line) if cell.strip()]
+            if len(cells) < 2:
+                cells = self.split_bearing_distance_line(line)
+            if len(cells) < 2:
+                continue
+
+            bearing = cells[0]
+            distance = cells[1]
+            if parse_bearing(bearing) is None or parse_float(distance) is None:
+                continue
+            rows.append((bearing, distance))
+        return rows
+
+    def split_bearing_distance_line(self, line):
+        match = re.match(r"^\s*((?:[NS]\s*)?.*?(?:\s*[EW])?)\s+([0-9][0-9,]*(?:\.\d+)?)\s*$", line, re.IGNORECASE)
+        if not match:
+            return []
+        return [match.group(1).strip(), match.group(2).strip()]
 
     def generate_lot_id(self):
         existing = [

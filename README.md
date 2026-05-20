@@ -43,6 +43,7 @@ A QGIS plugin for plotting lot boundaries based on bearing and distance measurem
 
 4. **Add Lot Corners**:
    - Click "Add Corner" to add a new row
+   - Or copy bearing/distance rows from a spreadsheet and press Ctrl+V in the table, or use "Paste Rows"
    - Enter the **Bearing**
      - Decimal azimuth: `0`, `90`, `180`, `270`
      - Quadrant bearing: `N 45 30 E`, `S 12-15-30 W`
