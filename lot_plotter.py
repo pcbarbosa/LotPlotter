@@ -9,9 +9,7 @@ from qgis.core import QgsProject, QgsVectorLayer, QgsFeature, QgsGeometry, QgsPo
 from qgis.gui import QgisInterface
 
 PLUGIN_DIR = os.path.dirname(__file__)
-LOCAL_LOOKUP_DIR = os.path.join(PLUGIN_DIR, 'LookUpData')
-GETOOLS_LOOKUP_DIR = os.path.join(os.path.dirname(PLUGIN_DIR), 'GETools', 'Survey', 'LookUpData')
-LOOKUP_DIR = LOCAL_LOOKUP_DIR if os.path.exists(LOCAL_LOOKUP_DIR) else GETOOLS_LOOKUP_DIR
+LOOKUP_DIR = os.path.join(PLUGIN_DIR, 'LookUpData')
 
 FORM_CLASS, _ = uic.loadUiType(os.path.join(
     os.path.dirname(__file__), 'lot_plotter_dialog.ui'))
@@ -106,8 +104,11 @@ def load_tie_points_for_province(province_code):
             ptm_n = parse_float_or_blank(row[10] if len(row) > 10 else "")
             ptm_e = parse_float_or_blank(row[11] if len(row) > 11 else "")
             point_name = " ".join(part for part in (marker, number) if part)
+            description = " ".join(part for part in (marker, number, survey, municipality, province) if part)
             display = " | ".join(part for part in (municipality, point_name, survey) if part)
             points.append({
+                'id': number,
+                'description': description,
                 'display': display,
                 'point_name': point_name,
                 'marker': marker,
@@ -123,6 +124,121 @@ def load_tie_points_for_province(province_code):
                 'ptm_e': ptm_e,
             })
     return points
+
+
+class TiePointChooserDialog(QtWidgets.QDialog):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setWindowTitle("Choose Tie Point")
+        self.resize(760, 420)
+        self.provinces = load_provinces()
+        self.tie_points = []
+
+        layout = QtWidgets.QVBoxLayout(self)
+
+        location_group = QtWidgets.QGroupBox("Tie Point")
+        location_form = QtWidgets.QFormLayout(location_group)
+        self.province_combo = QtWidgets.QComboBox()
+        self.province_combo.setEditable(True)
+        self.tie_point_combo = QtWidgets.QComboBox()
+        self.tie_point_combo.setEditable(True)
+        self.tie_point_combo.setMinimumContentsLength(70)
+        self.tie_point_combo.setMaxVisibleItems(18)
+        location_form.addRow("Province:", self.province_combo)
+        location_form.addRow("Tie Point:", self.tie_point_combo)
+        layout.addWidget(location_group)
+
+        projection_group = QtWidgets.QGroupBox("Coordinate Source")
+        projection_layout = QtWidgets.QHBoxLayout(projection_group)
+        self.ptm_radio = QtWidgets.QRadioButton("PTM")
+        self.prs_radio = QtWidgets.QRadioButton("PRS")
+        self.lpcs_radio = QtWidgets.QRadioButton("LPCS")
+        self.ptm_radio.setChecked(True)
+        projection_layout.addWidget(self.ptm_radio)
+        projection_layout.addWidget(self.prs_radio)
+        projection_layout.addWidget(self.lpcs_radio)
+        projection_layout.addStretch()
+        layout.addWidget(projection_group)
+
+        coord_group = QtWidgets.QGroupBox("Coordinates")
+        coord_form = QtWidgets.QFormLayout(coord_group)
+        self.tp_id_edit = QtWidgets.QLineEdit()
+        self.municipality_edit = QtWidgets.QLineEdit()
+        self.survey_edit = QtWidgets.QLineEdit()
+        self.northing_edit = QtWidgets.QLineEdit()
+        self.easting_edit = QtWidgets.QLineEdit()
+        for edit in (
+            self.tp_id_edit,
+            self.municipality_edit,
+            self.survey_edit,
+            self.northing_edit,
+            self.easting_edit,
+        ):
+            edit.setReadOnly(True)
+        coord_form.addRow("TP Id:", self.tp_id_edit)
+        coord_form.addRow("Municipality:", self.municipality_edit)
+        coord_form.addRow("Survey:", self.survey_edit)
+        coord_form.addRow("Northing:", self.northing_edit)
+        coord_form.addRow("Easting:", self.easting_edit)
+        layout.addWidget(coord_group)
+
+        buttons = QtWidgets.QDialogButtonBox(QtWidgets.QDialogButtonBox.Ok | QtWidgets.QDialogButtonBox.Cancel)
+        buttons.accepted.connect(self.accept)
+        buttons.rejected.connect(self.reject)
+        layout.addWidget(buttons)
+
+        self.province_combo.currentIndexChanged.connect(self.populate_tie_points)
+        self.tie_point_combo.currentIndexChanged.connect(self.refresh_selected_point)
+        self.ptm_radio.toggled.connect(self.refresh_selected_point)
+        self.prs_radio.toggled.connect(self.refresh_selected_point)
+        self.lpcs_radio.toggled.connect(self.refresh_selected_point)
+
+        self.populate_provinces()
+
+    def populate_provinces(self):
+        self.province_combo.blockSignals(True)
+        self.province_combo.clear()
+        for province in self.provinces:
+            self.province_combo.addItem(f"{province['code']} - {province['name']}", province)
+        self.province_combo.blockSignals(False)
+        self.populate_tie_points()
+
+    def populate_tie_points(self):
+        province = self.province_combo.currentData() or {}
+        self.tie_points = load_tie_points_for_province(province.get('code', ''))
+        self.tie_point_combo.blockSignals(True)
+        self.tie_point_combo.clear()
+        for point in self.tie_points:
+            self.tie_point_combo.addItem(point.get('display', point.get('description', '')), point)
+        self.tie_point_combo.blockSignals(False)
+        self.refresh_selected_point()
+
+    def selected_projection(self):
+        if self.prs_radio.isChecked():
+            return 'prs'
+        if self.lpcs_radio.isChecked():
+            return 'lpcs'
+        return 'ptm'
+
+    def refresh_selected_point(self):
+        point = self.tie_point_combo.currentData() or {}
+        projection = self.selected_projection()
+        self.tp_id_edit.setText(point.get('id', ''))
+        self.municipality_edit.setText(point.get('municipality', ''))
+        self.survey_edit.setText(point.get('survey', ''))
+        self.northing_edit.setText(point.get(f'{projection}_n', ''))
+        self.easting_edit.setText(point.get(f'{projection}_e', ''))
+
+    def selected_values(self):
+        point = self.tie_point_combo.currentData() or {}
+        projection = self.selected_projection()
+        return {
+            'point': point,
+            'projection': projection.upper(),
+            'northing': point.get(f'{projection}_n', ''),
+            'easting': point.get(f'{projection}_e', ''),
+            'description': point.get('description', self.tie_point_combo.currentText()),
+        }
 
 
 class LotPlotterDialog(QtWidgets.QDialog, FORM_CLASS):
@@ -146,8 +262,7 @@ class LotPlotterDialog(QtWidgets.QDialog, FORM_CLASS):
         self.province_combo.currentIndexChanged.connect(self.on_province_changed)
         self.tie_point_combo.currentIndexChanged.connect(self.on_tie_point_changed)
         try:
-            # If GETools is available, wire the chooser button
-            self.choose_tie_btn.clicked.connect(self.open_getools_tie_dialog)
+            self.choose_tie_btn.clicked.connect(self.open_tie_point_dialog)
         except Exception:
             pass
         self.populate_provinces()
@@ -232,28 +347,26 @@ class LotPlotterDialog(QtWidgets.QDialog, FORM_CLASS):
                 return x, y
         return None
 
-    def open_getools_tie_dialog(self):
-        try:
-            from GETools.getools import TiePointDataDialog
-        except Exception:
-            QtWidgets.QMessageBox.warning(self, "GETools Not Found", 
-                "GETools plugin not available or failed to load. Ensure GETools is installed in the plugins folder.")
-            return
-
-        dlg = TiePointDataDialog(self)
+    def open_tie_point_dialog(self):
+        dlg = TiePointChooserDialog(self)
         if dlg.exec_() == QtWidgets.QDialog.Accepted:
-            values = dlg.get_values()
-            # Prefer tie_northing/easting then fallbacks
-            north = values.get('tie_northing') or values.get('tie_ptm_northing') or values.get('tie_prs_northing') or values.get('tie_lpcs_northing')
-            east = values.get('tie_easting') or values.get('tie_ptm_easting') or values.get('tie_prs_easting') or values.get('tie_lpcs_easting')
-            try:
-                x = float(east)
-                y = float(north)
-                self.start_x_input.setText(f"{x:.3f}")
-                self.start_y_input.setText(f"{y:.3f}")
-                self.results_text.setText(f"Selected tie point via GETools dialog. Coordinates set to: ({x:.3f}, {y:.3f})")
-            except (TypeError, ValueError):
-                QtWidgets.QMessageBox.warning(self, "Tie Point Data", "Selected tie point does not contain usable numeric coordinates.")
+            values = dlg.selected_values()
+            x = parse_float(values.get('easting'))
+            y = parse_float(values.get('northing'))
+            if x is None or y is None:
+                QtWidgets.QMessageBox.warning(
+                    self,
+                    "Tie Point Data",
+                    "Selected tie point does not contain usable numeric coordinates for that coordinate source.",
+                )
+                return
+            self.start_x_input.setText(f"{x:.3f}")
+            self.start_y_input.setText(f"{y:.3f}")
+            self.results_text.setText(
+                f"Selected tie point: {values.get('description', '')}\n"
+                f"Coordinate source: {values.get('projection', '')}\n"
+                f"Coordinates set to: ({x:.3f}, {y:.3f})"
+            )
         
     def get_corners_from_table(self):
         """Extract bearing/distance data from table"""

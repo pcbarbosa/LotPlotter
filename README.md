@@ -29,7 +29,7 @@ A QGIS plugin for plotting lot boundaries based on bearing and distance measurem
 2. **Set Starting Point**: 
    - Enter the X (Easting) and Y (Northing) coordinates of the starting point
    - Or select a tie point from the dropdown menus
-   - The province dropdown loads tie point files from the plugin `LookUpData` folder, with GETools as a fallback
+   - The province dropdown loads tie point files from this plugin's `LookUpData` folder
    - Default is (0, 0)
 
 3. **Add Lot Corners**:
