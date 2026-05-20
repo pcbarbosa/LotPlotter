@@ -28,34 +28,40 @@ A QGIS plugin for plotting lot boundaries based on bearing and distance measurem
 
 2. **Set Starting Point**: 
    - Enter the X (Easting) and Y (Northing) coordinates of the starting point
-   - Or select a tie point from the dropdown menus
+   - Or click "Choose Tie-Point..." and select a tie point from the lookup data
    - The province dropdown loads tie point files from this plugin's `LookUpData` folder
    - If PTM is selected, the plotted lot layer uses Luzon 1911 / Philippines CRS, with the zone assigned from the selected tie point province
    - If PRS is selected, the plotted lot layer uses PRS92 / Philippines CRS with the same province-based zone assignment
    - If LPCS is selected, the plotted lot layer is created with unknown CRS because LPCS is a local floating coordinate system
    - Default is (0, 0)
 
-3. **Add Lot Corners**:
+3. **Fill Lot / Claimant Details**:
+   - Lot ID is generated automatically
+   - Enter lot name/number, GE/surveyor, survey number/date, claimant, and survey type
+   - Island, province, municipality/city, and barangay dropdowns are populated from `LookUpData`
+   - Selected tie point name/northing/easting are stored as generated layer fields
+
+4. **Add Lot Corners**:
    - Click "Add Corner" to add a new row
    - Enter the **Bearing**
      - Decimal azimuth: `0`, `90`, `180`, `270`
      - Quadrant bearing: `N 45 30 E`, `S 12-15-30 W`
    - Enter the **Distance** (in the same units as your coordinates)
 
-4. **Plot the Lot**:
+5. **Plot the Lot**:
    - Click "Plot Lot" to:
      - Calculate all corner coordinates
      - Compute the lot area
      - Calculate closure error
      - Create a polygon layer on the map
 
-5. **View Results**:
+6. **View Results**:
    - Area in square units
    - Closure Error (distance from last point to first point)
    - Closure Ratio (1:ratio format - lower is better)
    - All corner coordinates
 
-6. **Export Coordinates** (optional):
+7. **Export Coordinates** (optional):
    - Click "Export Coordinates" to save corner coordinates to a CSV file
 
 ## Bearing Convention

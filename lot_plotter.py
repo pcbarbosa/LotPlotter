@@ -10,6 +10,55 @@ from qgis.gui import QgisInterface
 
 PLUGIN_DIR = os.path.dirname(__file__)
 LOOKUP_DIR = os.path.join(PLUGIN_DIR, 'LookUpData')
+SURVEY_TYPES = [
+    'CADASTRAL',
+    'SUBDIVISION',
+    'CONSOLIDATION',
+    'CONSOLIDATION-SUBDIVISION',
+    'RELOCATION',
+    'SKETCH PLAN',
+    'SPECIAL WORK ORDER',
+    'OTHER',
+]
+ISLAND_GROUPS = ['LUZON', 'VISAYAS', 'MINDANAO']
+PROVINCE_ISLANDS = {
+    'ABRA': 'LUZON', 'APAYAO': 'LUZON', 'BENGUET': 'LUZON', 'IFUGAO': 'LUZON',
+    'KALINGA': 'LUZON', 'MOUNTAIN PROVINCE': 'LUZON', 'ILOCOS NORTE': 'LUZON',
+    'ILOCOS SUR': 'LUZON', 'LA UNION': 'LUZON', 'PANGASINAN': 'LUZON',
+    'BATANES': 'LUZON', 'CAGAYAN': 'LUZON', 'ISABELA': 'LUZON',
+    'NUEVA VIZCAYA': 'LUZON', 'QUIRINO': 'LUZON', 'BATAAN': 'LUZON',
+    'BULACAN': 'LUZON', 'NUEVA ECIJA': 'LUZON', 'PAMPANGA': 'LUZON',
+    'TARLAC': 'LUZON', 'ZAMBALES': 'LUZON', 'AURORA': 'LUZON',
+    'BATANGAS': 'LUZON', 'CAVITE': 'LUZON', 'LAGUNA': 'LUZON',
+    'QUEZON': 'LUZON', 'RIZAL': 'LUZON', 'METRO MANILA': 'LUZON',
+    'NATIONAL CAPITAL REGION': 'LUZON', 'NCR': 'LUZON', 'ALBAY': 'LUZON',
+    'CAMARINES NORTE': 'LUZON', 'CAMARINES SUR': 'LUZON',
+    'CATANDUANES': 'LUZON', 'MASBATE': 'LUZON', 'SORSOGON': 'LUZON',
+    'MARINDUQUE': 'LUZON', 'OCCIDENTAL MINDORO': 'LUZON',
+    'ORIENTAL MINDORO': 'LUZON', 'PALAWAN': 'LUZON', 'ROMBLON': 'LUZON',
+    'AKLAN': 'VISAYAS', 'ANTIQUE': 'VISAYAS', 'CAPIZ': 'VISAYAS',
+    'ILOILO': 'VISAYAS', 'ILO-ILO': 'VISAYAS', 'NEGROS OCCIDENTAL': 'VISAYAS',
+    'GUIMARAS': 'VISAYAS', 'BOHOL': 'VISAYAS', 'CEBU': 'VISAYAS',
+    'NEGROS ORIENTAL': 'VISAYAS', 'SIQUIJOR': 'VISAYAS',
+    'EASTERN SAMAR': 'VISAYAS', 'LEYTE': 'VISAYAS',
+    'NORTHERN SAMAR': 'VISAYAS', 'SAMAR': 'VISAYAS',
+    'WESTERN SAMAR': 'VISAYAS', 'SOUTHERN LEYTE': 'VISAYAS',
+    'BILIRAN': 'VISAYAS',
+    'ZAMBOANGA DEL NORTE': 'MINDANAO', 'ZAMBOANGA DEL SUR': 'MINDANAO',
+    'ZAMBOANGA SIBUGAY': 'MINDANAO', 'BUKIDNON': 'MINDANAO',
+    'CAMIGUIN': 'MINDANAO', 'LANAO DEL NORTE': 'MINDANAO',
+    'MISAMIS OCCIDENTAL': 'MINDANAO', 'MISAMIS ORIENTAL': 'MINDANAO',
+    'COMPOSTELA VALLEY': 'MINDANAO', 'DAVAO DE ORO': 'MINDANAO',
+    'DAVAO DEL NORTE': 'MINDANAO', 'DAVAO DEL SUR': 'MINDANAO',
+    'DAVAO ORIENTAL': 'MINDANAO', 'NORTH COTABATO': 'MINDANAO',
+    'COTABATO': 'MINDANAO', 'SARANGANI': 'MINDANAO',
+    'SOUTH COTABATO': 'MINDANAO', 'SULTAN KUDARAT': 'MINDANAO',
+    'AGUSAN DEL NORTE': 'MINDANAO', 'AGUSAN DEL SUR': 'MINDANAO',
+    'DINAGAT ISLANDS': 'MINDANAO', 'SURIGAO DEL NORTE': 'MINDANAO',
+    'SURIGAO DEL SUR': 'MINDANAO', 'BASILAN': 'MINDANAO',
+    'LANAO DEL SUR': 'MINDANAO', 'MAGUINDANAO': 'MINDANAO',
+    'TAWI-TAWI': 'MINDANAO', 'TAWI TAWI': 'MINDANAO', 'SULU': 'MINDANAO',
+}
 LUZON_1911_ZONE_CRS = {
     'I': ('Zone I', 'EPSG:25391'),
     'II': ('Zone II', 'EPSG:25392'),
@@ -132,6 +181,49 @@ def parse_float(value):
         return float(str(value).replace(",", "").strip())
     except (TypeError, ValueError):
         return None
+
+
+def read_dollar_lookup_rows(prefix):
+    rows = []
+    for extension in ('Txt', 'Dta', 'csv'):
+        for name in os.listdir(LOOKUP_DIR):
+            if not name.lower().startswith(prefix.lower()) or not name.lower().endswith(f'.{extension.lower()}'):
+                continue
+            path = os.path.join(LOOKUP_DIR, name)
+            with open(path, 'r', encoding='utf-8', errors='ignore') as handle:
+                for line in handle:
+                    parts = [part.strip() for part in line.strip().split('$')]
+                    if len(parts) >= 2 and parts[0] and parts[1]:
+                        rows.append({'code': parts[0], 'name': parts[1]})
+    seen = set()
+    unique = []
+    for row in rows:
+        if row['code'] in seen:
+            continue
+        seen.add(row['code'])
+        unique.append(row)
+    return unique
+
+
+def load_municipalities_for_province(province_code):
+    rows = read_dollar_lookup_rows('MunDta')
+    return [row for row in rows if row['code'].startswith(str(province_code))]
+
+
+def load_barangays_for_municipality(municipality_code):
+    rows = read_dollar_lookup_rows('BgyDta')
+    return [row for row in rows if row['code'].startswith(str(municipality_code))]
+
+
+def load_simple_lookup_values(file_name, fallback):
+    path = os.path.join(LOOKUP_DIR, file_name)
+    values = []
+    if os.path.exists(path):
+        with open(path, 'r', encoding='utf-8', errors='ignore') as handle:
+            for row in csv.reader(handle):
+                if row and row[0].strip():
+                    values.append(row[0].strip())
+    return values or fallback
 
 
 def parse_dms_angle(text):
@@ -426,6 +518,9 @@ class LotPlotterDialog(QtWidgets.QDialog, FORM_CLASS):
         self.tie_points = []
         self.autocad_script = ""
         self.selected_tie_values = {}
+        self.lookup_provinces = load_provinces()
+        self.current_lot_id = self.generate_lot_id()
+        self.setup_project_detail_sections()
         
         # Connect buttons
         self.add_corner_btn.clicked.connect(self.add_corner)
@@ -433,15 +528,76 @@ class LotPlotterDialog(QtWidgets.QDialog, FORM_CLASS):
         self.plot_btn.clicked.connect(self.plot_lot)
         self.clear_btn.clicked.connect(self.clear_all)
         self.export_btn.clicked.connect(self.export_coordinates)
-        self.province_combo.currentIndexChanged.connect(self.on_province_changed)
-        self.tie_point_combo.currentIndexChanged.connect(self.on_tie_point_changed)
         try:
             self.choose_tie_btn.clicked.connect(self.open_tie_point_dialog)
         except Exception:
             pass
-        self.populate_provinces()
+        self.populate_claimant_lookups()
         for _ in range(4):
             self.add_corner()
+
+    def setup_project_detail_sections(self):
+        if hasattr(self, 'groupBox_tie_point'):
+            self.groupBox_tie_point.hide()
+
+        self.tie_details_group = QtWidgets.QGroupBox("Selected Tie Point")
+        tie_form = QtWidgets.QFormLayout(self.tie_details_group)
+        self.tie_name_display = QtWidgets.QLineEdit()
+        self.tie_projection_display = QtWidgets.QLineEdit()
+        self.tie_northing_display = QtWidgets.QLineEdit()
+        self.tie_easting_display = QtWidgets.QLineEdit()
+        self.tie_crs_display = QtWidgets.QLineEdit()
+        for edit in (
+            self.tie_name_display,
+            self.tie_projection_display,
+            self.tie_northing_display,
+            self.tie_easting_display,
+            self.tie_crs_display,
+        ):
+            edit.setReadOnly(True)
+        tie_form.addRow("Tie Point Name:", self.tie_name_display)
+        tie_form.addRow("Coordinate Source:", self.tie_projection_display)
+        tie_form.addRow("Tie Point Northing:", self.tie_northing_display)
+        tie_form.addRow("Tie Point Easting:", self.tie_easting_display)
+        tie_form.addRow("Layer CRS:", self.tie_crs_display)
+
+        self.claimant_group = QtWidgets.QGroupBox("Lot / Claimant Details")
+        claimant_form = QtWidgets.QFormLayout(self.claimant_group)
+        self.lot_id_input = QtWidgets.QLineEdit(self.current_lot_id)
+        self.lot_id_input.setReadOnly(True)
+        self.lot_name_input = QtWidgets.QLineEdit()
+        self.ge_name_input = QtWidgets.QLineEdit()
+        self.survey_number_input = QtWidgets.QLineEdit()
+        self.survey_date_input = QtWidgets.QLineEdit()
+        self.type_combo = QtWidgets.QComboBox()
+        self.type_combo.setEditable(True)
+        self.claimant_input = QtWidgets.QLineEdit()
+        self.island_combo = QtWidgets.QComboBox()
+        self.island_combo.setEditable(True)
+        self.province_detail_combo = QtWidgets.QComboBox()
+        self.province_detail_combo.setEditable(True)
+        self.municipality_combo = QtWidgets.QComboBox()
+        self.municipality_combo.setEditable(True)
+        self.barangay_combo = QtWidgets.QComboBox()
+        self.barangay_combo.setEditable(True)
+
+        claimant_form.addRow("Lot ID:", self.lot_id_input)
+        claimant_form.addRow("Lot Name / Number:", self.lot_name_input)
+        claimant_form.addRow("GE / Surveyor Name:", self.ge_name_input)
+        claimant_form.addRow("Survey Number:", self.survey_number_input)
+        claimant_form.addRow("Survey Date:", self.survey_date_input)
+        claimant_form.addRow("Type:", self.type_combo)
+        claimant_form.addRow("Claimant:", self.claimant_input)
+        claimant_form.addRow("Island:", self.island_combo)
+        claimant_form.addRow("Province:", self.province_detail_combo)
+        claimant_form.addRow("Municipality / City:", self.municipality_combo)
+        claimant_form.addRow("Barangay:", self.barangay_combo)
+
+        self.verticalLayout.insertWidget(1, self.tie_details_group)
+        self.verticalLayout.insertWidget(2, self.claimant_group)
+
+        self.province_detail_combo.currentIndexChanged.connect(self.on_detail_province_changed)
+        self.municipality_combo.currentIndexChanged.connect(self.on_detail_municipality_changed)
         
     def add_corner(self):
         """Add a new corner row to the table"""
@@ -463,65 +619,73 @@ class LotPlotterDialog(QtWidgets.QDialog, FORM_CLASS):
         self.calculated_coordinates = []
         self.autocad_script = ""
         self.selected_tie_values = {}
+        self.current_lot_id = self.generate_lot_id()
+        self.lot_id_input.setText(self.current_lot_id)
+        self.update_tie_detail_display()
         for _ in range(4):
             self.add_corner()
 
     def refresh_corner_numbers(self):
         for row in range(self.table.rowCount()):
             self.table.setVerticalHeaderItem(row, QtWidgets.QTableWidgetItem(str(row + 1)))
-        
-    def populate_provinces(self):
-        self.provinces = load_provinces()
-        self.province_combo.clear()
-        self.tie_point_combo.clear()
-        self.tie_points = []
-        self.province_combo.setEditable(True)
-        self.tie_point_combo.setEditable(True)
-        
-        for province in self.provinces:
-            self.province_combo.addItem(f"{province['code']} - {province['name']}", province['code'])
-        
-        if self.provinces:
-            self.province_combo.setCurrentIndex(0)
-            self.on_province_changed(0)
-        
-    def on_province_changed(self, index):
-        if index < 0 or index >= len(self.provinces):
-            self.tie_point_combo.clear()
-            self.tie_points = []
-            return
-        province_code = self.provinces[index]['code']
-        self.tie_points = load_tie_points_for_province(province_code)
-        self.tie_point_combo.clear()
-        self.tie_point_combo.addItem("Select a tie point", None)
-        for point in self.tie_points:
-            self.tie_point_combo.addItem(point['display'], point)
-        
-    def on_tie_point_changed(self, index):
-        if index <= 0 or index > len(self.tie_points):
-            return
-        point = self.tie_point_combo.itemData(index)
-        if not point:
-            return
-        coords = self.select_tie_point_coordinates(point)
-        if coords is not None:
-            x, y, projection = coords
-            self.start_x_input.setText(f"{x:.3f}")
-            self.start_y_input.setText(f"{y:.3f}")
-            self.selected_tie_values = {
-                'point': point,
-                'projection': projection,
-                'northing': y,
-                'easting': x,
-                'description': point.get('description', point.get('display', '')),
-            }
-            self.results_text.setText(
-                f"Selected tie point: {point['display']}\n"
-                f"Coordinate source: {projection}\n"
-                f"Coordinates set to: ({x:.3f}, {y:.3f})")
-        else:
-            QtWidgets.QMessageBox.warning(self, "Tie Point Data", 
-                "Selected tie point does not contain usable coordinates.")
+
+    def generate_lot_id(self):
+        existing = [
+            layer for layer in QgsProject.instance().mapLayers().values()
+            if layer.name().startswith("Lot Boundary")
+        ]
+        return f"LOT-{len(existing) + 1:03d}"
+
+    def populate_claimant_lookups(self):
+        self.type_combo.clear()
+        self.type_combo.addItems(load_simple_lookup_values('SurveyTypes.csv', SURVEY_TYPES))
+        self.island_combo.clear()
+        self.island_combo.addItems(load_simple_lookup_values('IslandGroups.csv', ISLAND_GROUPS))
+        self.province_detail_combo.blockSignals(True)
+        self.province_detail_combo.clear()
+        for province in self.lookup_provinces:
+            self.province_detail_combo.addItem(province['name'], province)
+        self.province_detail_combo.blockSignals(False)
+        self.on_detail_province_changed(self.province_detail_combo.currentIndex())
+
+    def on_detail_province_changed(self, index):
+        province = self.province_detail_combo.itemData(index) or {}
+        province_code = province.get('code', '')
+        island = PROVINCE_ISLANDS.get(normalize_lookup_name(province.get('name', '')))
+        if island:
+            self.select_combo_text(self.island_combo, island)
+        municipalities = load_municipalities_for_province(province_code)
+        self.municipality_combo.blockSignals(True)
+        self.municipality_combo.clear()
+        for municipality in municipalities:
+            self.municipality_combo.addItem(municipality['name'], municipality)
+        self.municipality_combo.blockSignals(False)
+        self.on_detail_municipality_changed(self.municipality_combo.currentIndex())
+
+    def on_detail_municipality_changed(self, index):
+        municipality = self.municipality_combo.itemData(index) or {}
+        barangays = load_barangays_for_municipality(municipality.get('code', ''))
+        self.barangay_combo.blockSignals(True)
+        self.barangay_combo.clear()
+        for barangay in barangays:
+            self.barangay_combo.addItem(barangay['name'], barangay)
+        self.barangay_combo.blockSignals(False)
+
+    def select_combo_text(self, combo, text):
+        for index in range(combo.count()):
+            if combo.itemText(index).upper() == str(text).upper():
+                combo.setCurrentIndex(index)
+                return True
+        return False
+
+    def select_combo_data_name(self, combo, name):
+        normalized = normalize_lookup_name(name)
+        for index in range(combo.count()):
+            data = combo.itemData(index) or {}
+            if normalize_lookup_name(data.get('name', combo.itemText(index))) == normalized:
+                combo.setCurrentIndex(index)
+                return True
+        return False
 
     def select_tie_point_coordinates(self, point):
         for projection, x_key, y_key in [('PTM', 'ptm_e', 'ptm_n'), ('PRS', 'prs_e', 'prs_n'), ('LPCS', 'lpcs_e', 'lpcs_n')]:
@@ -547,11 +711,55 @@ class LotPlotterDialog(QtWidgets.QDialog, FORM_CLASS):
             self.start_x_input.setText(f"{x:.3f}")
             self.start_y_input.setText(f"{y:.3f}")
             self.selected_tie_values = values
+            self.apply_tie_point_to_details()
+            self.update_tie_detail_display()
             self.results_text.setText(
                 f"Selected tie point: {values.get('description', '')}\n"
                 f"Coordinate source: {values.get('projection', '')}\n"
                 f"Coordinates set to: ({x:.3f}, {y:.3f})"
             )
+
+    def apply_tie_point_to_details(self):
+        point = self.selected_tie_values.get('point') or {}
+        if point.get('province') and self.select_combo_data_name(self.province_detail_combo, point.get('province')):
+            pass
+        if point.get('municipality'):
+            self.select_combo_data_name(self.municipality_combo, point.get('municipality'))
+
+    def update_tie_detail_display(self):
+        values = self.selected_tie_values or {}
+        point = values.get('point') or {}
+        crs_info = crs_for_tie_point(values)
+        crs_label = crs_info.get('label', '')
+        if crs_info.get('authid'):
+            crs_label = f"{crs_label} ({crs_info.get('authid')})"
+        elif crs_info.get('force_unknown'):
+            crs_label = "Unknown CRS (LPCS)"
+        self.tie_name_display.setText(values.get('description', ''))
+        self.tie_projection_display.setText(values.get('projection', ''))
+        self.tie_northing_display.setText(str(values.get('northing', '')))
+        self.tie_easting_display.setText(str(values.get('easting', '')))
+        self.tie_crs_display.setText(crs_label)
+
+    def lot_metadata(self, area):
+        point = self.selected_tie_values.get('point') or {}
+        return {
+            'lot_id': self.lot_id_input.text().strip() or self.current_lot_id,
+            'lot_name': self.lot_name_input.text().strip(),
+            'ge_name': self.ge_name_input.text().strip(),
+            'survey_no': self.survey_number_input.text().strip(),
+            'survey_dt': self.survey_date_input.text().strip(),
+            'type': self.type_combo.currentText().strip(),
+            'claimant': self.claimant_input.text().strip(),
+            'island': self.island_combo.currentText().strip(),
+            'province': self.province_detail_combo.currentText().strip(),
+            'mun_city': self.municipality_combo.currentText().strip(),
+            'barangay': self.barangay_combo.currentText().strip(),
+            'area_sqm': area,
+            'tie_north': parse_float(self.selected_tie_values.get('northing')),
+            'tie_east': parse_float(self.selected_tie_values.get('easting')),
+            'tie_name': self.selected_tie_values.get('description', point.get('description', '')),
+        }
         
     def get_corners_from_table(self):
         """Extract bearing/distance data from table"""
@@ -596,9 +804,15 @@ class LotPlotterDialog(QtWidgets.QDialog, FORM_CLASS):
             self.autocad_script = self.generate_autocad_script(coordinates)
             area = self.calculate_area(coordinates)
             closure_error = self.calculate_closure_error(coordinates)
+            metadata = self.lot_metadata(area)
             
             # Display results with coordinates
             results = f"=== LOT PLOTTER RESULTS ===\n\n"
+            results += f"Lot ID: {metadata['lot_id']}\n"
+            if metadata['lot_name']:
+                results += f"Lot Name / Number: {metadata['lot_name']}\n"
+            if metadata['claimant']:
+                results += f"Claimant: {metadata['claimant']}\n"
             results += f"Starting Point: ({start_x:.2f}, {start_y:.2f})\n\n"
             crs_info = crs_for_tie_point(self.selected_tie_values)
             crs_authid = crs_info.get('authid')
@@ -635,10 +849,12 @@ class LotPlotterDialog(QtWidgets.QDialog, FORM_CLASS):
             self.results_text.setText(results)
             
             # Create and add layer to map
-            self.create_lot_layer(coordinates, crs_authid, crs_zone, crs_info.get('force_unknown', False))
+            self.create_lot_layer(coordinates, metadata, crs_authid, crs_zone, crs_info.get('force_unknown', False))
             
             QtWidgets.QMessageBox.information(self, "Success", 
                 f"Lot plotted successfully!\nArea: {area:.2f} sq units\nClosure Error: {closure_error:.4f}")
+            self.current_lot_id = self.generate_lot_id()
+            self.lot_id_input.setText(self.current_lot_id)
                 
         except ValueError as e:
             QtWidgets.QMessageBox.critical(self, "Error", f"Invalid input: {str(e)}")
@@ -739,7 +955,7 @@ class LotPlotterDialog(QtWidgets.QDialog, FORM_CLASS):
                 QtWidgets.QMessageBox.critical(self, "Error", 
                     f"Failed to export: {str(e)}")
     
-    def create_lot_layer(self, coordinates, crs_authid=None, crs_zone="", force_unknown_crs=False):
+    def create_lot_layer(self, coordinates, metadata, crs_authid=None, crs_zone="", force_unknown_crs=False):
         """Create a vector layer and add the lot polygon"""
         if not self.iface:
             return
@@ -757,10 +973,24 @@ class LotPlotterDialog(QtWidgets.QDialog, FORM_CLASS):
         provider = layer.dataProvider()
         provider.addAttributes([
             QgsField("lot_id", QVariant.String),
+            QgsField("lot_name", QVariant.String),
+            QgsField("ge_name", QVariant.String),
+            QgsField("survey_no", QVariant.String),
+            QgsField("survey_dt", QVariant.String),
+            QgsField("type", QVariant.String),
+            QgsField("claimant", QVariant.String),
+            QgsField("island", QVariant.String),
+            QgsField("province", QVariant.String),
+            QgsField("mun_city", QVariant.String),
+            QgsField("barangay", QVariant.String),
             QgsField("area", QVariant.Double),
+            QgsField("area_sqm", QVariant.Double),
             QgsField("perimeter", QVariant.Double),
             QgsField("closure", QVariant.Double),
             QgsField("corners", QVariant.Int),
+            QgsField("tie_north", QVariant.Double),
+            QgsField("tie_east", QVariant.Double),
+            QgsField("tie_name", QVariant.String),
             QgsField("crs_authid", QVariant.String),
             QgsField("crs_zone", QVariant.String),
         ])
@@ -774,11 +1004,25 @@ class LotPlotterDialog(QtWidgets.QDialog, FORM_CLASS):
         geometry = QgsGeometry.fromPolygonXY([points])
         feature.setGeometry(geometry)
         feature.setAttributes([
-            "Lot 1",
+            metadata.get('lot_id', self.current_lot_id),
+            metadata.get('lot_name', ''),
+            metadata.get('ge_name', ''),
+            metadata.get('survey_no', ''),
+            metadata.get('survey_dt', ''),
+            metadata.get('type', ''),
+            metadata.get('claimant', ''),
+            metadata.get('island', ''),
+            metadata.get('province', ''),
+            metadata.get('mun_city', ''),
+            metadata.get('barangay', ''),
             geometry.area(),
+            metadata.get('area_sqm', geometry.area()),
             geometry.length(),
             self.calculate_closure_error(coordinates),
             max(len(coordinates) - 1, 0),
+            metadata.get('tie_north'),
+            metadata.get('tie_east'),
+            metadata.get('tie_name', ''),
             crs_authid,
             crs_zone,
         ])
