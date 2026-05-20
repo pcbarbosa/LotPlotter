@@ -31,6 +31,8 @@ A QGIS plugin for plotting lot boundaries based on bearing and distance measurem
    - Or select a tie point from the dropdown menus
    - The province dropdown loads tie point files from this plugin's `LookUpData` folder
    - If PTM is selected, the plotted lot layer uses Luzon 1911 / Philippines CRS, with the zone assigned from the selected tie point province
+   - If PRS is selected, the plotted lot layer uses PRS92 / Philippines CRS with the same province-based zone assignment
+   - If LPCS is selected, the plotted lot layer is created with unknown CRS because LPCS is a local floating coordinate system
    - Default is (0, 0)
 
 3. **Add Lot Corners**:
@@ -66,7 +68,7 @@ The plugin uses standard surveying bearing notation:
 
 ## Coordinate Reference System
 
-The plugin creates the lot layer using the current QGIS project CRS unless the selected tie point uses PTM. For PTM tie points, it assigns Luzon 1911 / Philippines Zone I-V based on the selected province.
+The plugin creates the lot layer using the current QGIS project CRS unless a selected tie point defines the coordinate source. PTM tie points assign Luzon 1911 / Philippines Zone I-V, and PRS tie points assign PRS92 / Philippines Zone I-V, based on the selected province. LPCS tie points create an unknown-CRS layer because those coordinates are local/floating and should not be treated as georeferenced EPSG coordinates.
 
 ## Example
 

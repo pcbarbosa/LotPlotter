@@ -17,6 +17,13 @@ LUZON_1911_ZONE_CRS = {
     'IV': ('Zone IV', 'EPSG:25394'),
     'V': ('Zone V', 'EPSG:25395'),
 }
+PRS92_ZONE_CRS = {
+    'I': ('Zone I', 'EPSG:3121'),
+    'II': ('Zone II', 'EPSG:3122'),
+    'III': ('Zone III', 'EPSG:3123'),
+    'IV': ('Zone IV', 'EPSG:3124'),
+    'V': ('Zone V', 'EPSG:3125'),
+}
 PTM_PROVINCE_ZONES = {
     'ABRA': 'III',
     'BENGUET': 'III',
@@ -208,13 +215,28 @@ def ptm_zone_for_point(point):
 
 
 def crs_for_tie_point(values):
-    if values.get('projection') != 'PTM':
-        return None, ''
+    projection = values.get('projection')
+    if projection == 'LPCS':
+        return {
+            'authid': '',
+            'zone': 'Unknown / Local Floating Coordinates',
+            'label': 'Unknown CRS (LPCS)',
+            'force_unknown': True,
+        }
+    if projection not in ('PTM', 'PRS'):
+        return {'authid': None, 'zone': '', 'label': '', 'force_unknown': False}
+
     zone_code = ptm_zone_for_point(values.get('point') or {})
     if not zone_code:
-        return None, ''
-    zone_name, authid = LUZON_1911_ZONE_CRS[zone_code]
-    return authid, zone_name
+        return {'authid': None, 'zone': '', 'label': '', 'force_unknown': False}
+
+    if projection == 'PRS':
+        zone_name, authid = PRS92_ZONE_CRS[zone_code]
+        label = f"PRS92 / Philippines {zone_name}"
+    else:
+        zone_name, authid = LUZON_1911_ZONE_CRS[zone_code]
+        label = f"Luzon 1911 / Philippines {zone_name}"
+    return {'authid': authid, 'zone': zone_name, 'label': label, 'force_unknown': False}
 
 
 def load_provinces():
@@ -578,9 +600,13 @@ class LotPlotterDialog(QtWidgets.QDialog, FORM_CLASS):
             # Display results with coordinates
             results = f"=== LOT PLOTTER RESULTS ===\n\n"
             results += f"Starting Point: ({start_x:.2f}, {start_y:.2f})\n\n"
-            crs_authid, crs_zone = crs_for_tie_point(self.selected_tie_values)
+            crs_info = crs_for_tie_point(self.selected_tie_values)
+            crs_authid = crs_info.get('authid')
+            crs_zone = crs_info.get('zone', '')
             if crs_authid:
-                results += f"Layer CRS: Luzon 1911 / Philippines {crs_zone} ({crs_authid})\n\n"
+                results += f"Layer CRS: {crs_info.get('label')} ({crs_authid})\n\n"
+            elif crs_info.get('force_unknown'):
+                results += "Layer CRS: Unknown / local floating coordinates (LPCS)\n\n"
             results += f"Traverse Lines:\n"
             for i, corner in enumerate(corners, start=1):
                 results += (
@@ -609,7 +635,7 @@ class LotPlotterDialog(QtWidgets.QDialog, FORM_CLASS):
             self.results_text.setText(results)
             
             # Create and add layer to map
-            self.create_lot_layer(coordinates, crs_authid, crs_zone)
+            self.create_lot_layer(coordinates, crs_authid, crs_zone, crs_info.get('force_unknown', False))
             
             QtWidgets.QMessageBox.information(self, "Success", 
                 f"Lot plotted successfully!\nArea: {area:.2f} sq units\nClosure Error: {closure_error:.4f}")
@@ -713,15 +739,21 @@ class LotPlotterDialog(QtWidgets.QDialog, FORM_CLASS):
                 QtWidgets.QMessageBox.critical(self, "Error", 
                     f"Failed to export: {str(e)}")
     
-    def create_lot_layer(self, coordinates, crs_authid=None, crs_zone=""):
+    def create_lot_layer(self, coordinates, crs_authid=None, crs_zone="", force_unknown_crs=False):
         """Create a vector layer and add the lot polygon"""
         if not self.iface:
             return
         
-        if not crs_authid:
+        if force_unknown_crs:
+            crs_authid = ""
+            layer_uri = "Polygon"
+        elif crs_authid:
+            layer_uri = f"Polygon?crs={crs_authid}"
+        else:
             project_crs = QgsProject.instance().crs()
             crs_authid = project_crs.authid() if project_crs and project_crs.isValid() else "EPSG:4326"
-        layer = QgsVectorLayer(f"Polygon?crs={crs_authid}", "Lot Boundary", "memory")
+            layer_uri = f"Polygon?crs={crs_authid}"
+        layer = QgsVectorLayer(layer_uri, "Lot Boundary", "memory")
         provider = layer.dataProvider()
         provider.addAttributes([
             QgsField("lot_id", QVariant.String),
