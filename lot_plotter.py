@@ -10,6 +10,101 @@ from qgis.gui import QgisInterface
 
 PLUGIN_DIR = os.path.dirname(__file__)
 LOOKUP_DIR = os.path.join(PLUGIN_DIR, 'LookUpData')
+LUZON_1911_ZONE_CRS = {
+    'I': ('Zone I', 'EPSG:25391'),
+    'II': ('Zone II', 'EPSG:25392'),
+    'III': ('Zone III', 'EPSG:25393'),
+    'IV': ('Zone IV', 'EPSG:25394'),
+    'V': ('Zone V', 'EPSG:25395'),
+}
+PTM_PROVINCE_ZONES = {
+    'ABRA': 'III',
+    'BENGUET': 'III',
+    'IFUGAO': 'III',
+    'MOUNTAIN PROVINCE': 'III',
+    'KALINGA': 'III',
+    'APAYAO': 'III',
+    'METRO MANILA': 'III',
+    'NATIONAL CAPITAL REGION': 'III',
+    'NCR': 'III',
+    'ILOCOS NORTE': 'III',
+    'ILOCOS SUR': 'III',
+    'LA UNION': 'III',
+    'PANGASINAN': 'III',
+    'BATANES': 'III',
+    'CAGAYAN': 'III',
+    'NUEVA VIZCAYA': 'III',
+    'QUIRINO': 'III',
+    'BATAAN': 'III',
+    'BULACAN': 'III',
+    'NUEVA ECIJA': 'III',
+    'PAMPANGA': 'III',
+    'TARLAC': 'III',
+    'ZAMBALES': 'III',
+    'AURORA': 'III',
+    'BATANGAS': 'III',
+    'CAVITE': 'III',
+    'LAGUNA': 'III',
+    'MARINDUQUE': 'III',
+    'OCCIDENTAL MINDORO': 'III',
+    'ORIENTAL MINDORO': 'III',
+    'RIZAL': 'III',
+    'PALAWAN': 'I',
+    'ROMBLON': 'IV',
+    'ALBAY': 'IV',
+    'CAMARINES NORTE': 'IV',
+    'CAMARINES SUR': 'IV',
+    'CATANDUANES': 'IV',
+    'MASBATE': 'IV',
+    'SORSOGON': 'IV',
+    'AKLAN': 'IV',
+    'ANTIQUE': 'IV',
+    'CAPIZ': 'IV',
+    'ILOILO': 'IV',
+    'ILO-ILO': 'IV',
+    'NEGROS OCCIDENTAL': 'IV',
+    'GUIMARAS': 'IV',
+    'BOHOL': 'V',
+    'CEBU': 'IV',
+    'NEGROS ORIENTAL': 'V',
+    'SIQUIJOR': 'V',
+    'EASTERN SAMAR': 'V',
+    'LEYTE': 'V',
+    'NORTHERN SAMAR': 'V',
+    'SAMAR': 'V',
+    'WESTERN SAMAR': 'V',
+    'SOUTHERN LEYTE': 'V',
+    'BILIRAN': 'V',
+    'ZAMBOANGA DEL NORTE': 'IV',
+    'ZAMBOANGA DEL SUR': 'IV',
+    'ZAMBOANGA SIBUGAY': 'IV',
+    'BUKIDNON': 'V',
+    'CAMIGUIN': 'V',
+    'LANAO DEL NORTE': 'V',
+    'MISAMIS OCCIDENTAL': 'IV',
+    'MISAMIS ORIENTAL': 'V',
+    'COMPOSTELA VALLEY': 'V',
+    'DAVAO DE ORO': 'V',
+    'DAVAO DEL NORTE': 'V',
+    'DAVAO DEL SUR': 'V',
+    'DAVAO ORIENTAL': 'V',
+    'NORTH COTABATO': 'V',
+    'COTABATO': 'V',
+    'SARANGANI': 'V',
+    'SOUTH COTABATO': 'V',
+    'SULTAN KUDARAT': 'V',
+    'AGUSAN DEL NORTE': 'V',
+    'AGUSAN DEL SUR': 'V',
+    'DINAGAT ISLANDS': 'V',
+    'SURIGAO DEL NORTE': 'V',
+    'SURIGAO DEL SUR': 'V',
+    'BASILAN': 'IV',
+    'LANAO DEL SUR': 'V',
+    'MAGUINDANAO': 'V',
+    'TAWI-TAWI': 'III',
+    'TAWI TAWI': 'III',
+    'SULU': 'III',
+}
 
 FORM_CLASS, _ = uic.loadUiType(os.path.join(
     os.path.dirname(__file__), 'lot_plotter_dialog.ui'))
@@ -39,7 +134,7 @@ def parse_dms_angle(text):
     degrees = float(parts[0])
     minutes = float(parts[1]) if len(parts) > 1 else 0.0
     seconds = float(parts[2]) if len(parts) > 2 else 0.0
-    if minutes >= 60 or seconds >= 60:
+    if degrees > 180 or minutes >= 60 or seconds >= 60:
         return None
     return degrees + minutes / 60.0 + seconds / 3600.0
 
@@ -70,6 +165,58 @@ def parse_bearing(value):
     return angle % 360.0
 
 
+def normalize_lookup_name(value):
+    text = re.sub(r"[^A-Z0-9]+", " ", str(value or "").upper()).strip()
+    return re.sub(r"\s+", " ", text)
+
+
+def parse_longitude(value):
+    text = str(value or "").strip()
+    if not text:
+        return None
+    sign = -1 if text.upper().startswith("W") else 1
+    parts = re.findall(r"\d+(?:\.\d+)?", text)
+    if not parts:
+        return None
+    degrees = float(parts[0])
+    minutes = float(parts[1]) if len(parts) > 1 else 0.0
+    seconds = float(parts[2]) if len(parts) > 2 else 0.0
+    if minutes >= 60 or seconds >= 60:
+        return None
+    return sign * (degrees + minutes / 60.0 + seconds / 3600.0)
+
+
+def ptm_zone_for_point(point):
+    province = normalize_lookup_name(point.get('province', ''))
+    municipality = normalize_lookup_name(point.get('municipality', ''))
+    longitude = parse_longitude(point.get('longitude', ''))
+
+    if 'CAMOTES' in municipality:
+        return 'V'
+    if province in ('ISABELA', 'QUEZON') and longitude is not None:
+        return 'IV' if longitude >= 122 else 'III'
+    if province == 'ISABELA':
+        return 'III'
+    if province == 'QUEZON':
+        return 'III'
+    if province in PTM_PROVINCE_ZONES:
+        return PTM_PROVINCE_ZONES[province]
+    for mapped_province, zone_code in PTM_PROVINCE_ZONES.items():
+        if mapped_province in province or province in mapped_province:
+            return zone_code
+    return None
+
+
+def crs_for_tie_point(values):
+    if values.get('projection') != 'PTM':
+        return None, ''
+    zone_code = ptm_zone_for_point(values.get('point') or {})
+    if not zone_code:
+        return None, ''
+    zone_name, authid = LUZON_1911_ZONE_CRS[zone_code]
+    return authid, zone_name
+
+
 def load_provinces():
     path = os.path.join(LOOKUP_DIR, 'PrvDta.csv')
     provinces = []
@@ -97,6 +244,8 @@ def load_tie_points_for_province(province_code):
             municipality = row[3].strip()
             province = row[4].strip()
             region = row[5].strip()
+            latitude = row[6].strip() if len(row) > 6 else ""
+            longitude = row[7].strip() if len(row) > 7 else ""
             lpcs_n = parse_float_or_blank(row[6] if len(row) > 6 else "")
             lpcs_e = parse_float_or_blank(row[7] if len(row) > 7 else "")
             prs_n = parse_float_or_blank(row[8] if len(row) > 8 else "")
@@ -116,6 +265,8 @@ def load_tie_points_for_province(province_code):
                 'municipality': municipality,
                 'province': province,
                 'region': region,
+                'latitude': latitude,
+                'longitude': longitude,
                 'lpcs_n': lpcs_n,
                 'lpcs_e': lpcs_e,
                 'prs_n': prs_n,
@@ -252,6 +403,7 @@ class LotPlotterDialog(QtWidgets.QDialog, FORM_CLASS):
         self.provinces = []
         self.tie_points = []
         self.autocad_script = ""
+        self.selected_tie_values = {}
         
         # Connect buttons
         self.add_corner_btn.clicked.connect(self.add_corner)
@@ -288,6 +440,7 @@ class LotPlotterDialog(QtWidgets.QDialog, FORM_CLASS):
         self.results_text.clear()
         self.calculated_coordinates = []
         self.autocad_script = ""
+        self.selected_tie_values = {}
         for _ in range(4):
             self.add_corner()
 
@@ -330,21 +483,30 @@ class LotPlotterDialog(QtWidgets.QDialog, FORM_CLASS):
             return
         coords = self.select_tie_point_coordinates(point)
         if coords is not None:
-            x, y = coords
+            x, y, projection = coords
             self.start_x_input.setText(f"{x:.3f}")
             self.start_y_input.setText(f"{y:.3f}")
+            self.selected_tie_values = {
+                'point': point,
+                'projection': projection,
+                'northing': y,
+                'easting': x,
+                'description': point.get('description', point.get('display', '')),
+            }
             self.results_text.setText(
-                f"Selected tie point: {point['display']}\nCoordinates set to: ({x:.3f}, {y:.3f})")
+                f"Selected tie point: {point['display']}\n"
+                f"Coordinate source: {projection}\n"
+                f"Coordinates set to: ({x:.3f}, {y:.3f})")
         else:
             QtWidgets.QMessageBox.warning(self, "Tie Point Data", 
                 "Selected tie point does not contain usable coordinates.")
 
     def select_tie_point_coordinates(self, point):
-        for x_key, y_key in [('ptm_e', 'ptm_n'), ('prs_e', 'prs_n'), ('lpcs_e', 'lpcs_n')]:
+        for projection, x_key, y_key in [('PTM', 'ptm_e', 'ptm_n'), ('PRS', 'prs_e', 'prs_n'), ('LPCS', 'lpcs_e', 'lpcs_n')]:
             x = parse_float(point.get(x_key))
             y = parse_float(point.get(y_key))
             if x is not None and y is not None:
-                return x, y
+                return x, y, projection
         return None
 
     def open_tie_point_dialog(self):
@@ -362,6 +524,7 @@ class LotPlotterDialog(QtWidgets.QDialog, FORM_CLASS):
                 return
             self.start_x_input.setText(f"{x:.3f}")
             self.start_y_input.setText(f"{y:.3f}")
+            self.selected_tie_values = values
             self.results_text.setText(
                 f"Selected tie point: {values.get('description', '')}\n"
                 f"Coordinate source: {values.get('projection', '')}\n"
@@ -415,6 +578,9 @@ class LotPlotterDialog(QtWidgets.QDialog, FORM_CLASS):
             # Display results with coordinates
             results = f"=== LOT PLOTTER RESULTS ===\n\n"
             results += f"Starting Point: ({start_x:.2f}, {start_y:.2f})\n\n"
+            crs_authid, crs_zone = crs_for_tie_point(self.selected_tie_values)
+            if crs_authid:
+                results += f"Layer CRS: Luzon 1911 / Philippines {crs_zone} ({crs_authid})\n\n"
             results += f"Traverse Lines:\n"
             for i, corner in enumerate(corners, start=1):
                 results += (
@@ -443,7 +609,7 @@ class LotPlotterDialog(QtWidgets.QDialog, FORM_CLASS):
             self.results_text.setText(results)
             
             # Create and add layer to map
-            self.create_lot_layer(coordinates)
+            self.create_lot_layer(coordinates, crs_authid, crs_zone)
             
             QtWidgets.QMessageBox.information(self, "Success", 
                 f"Lot plotted successfully!\nArea: {area:.2f} sq units\nClosure Error: {closure_error:.4f}")
@@ -547,13 +713,14 @@ class LotPlotterDialog(QtWidgets.QDialog, FORM_CLASS):
                 QtWidgets.QMessageBox.critical(self, "Error", 
                     f"Failed to export: {str(e)}")
     
-    def create_lot_layer(self, coordinates):
+    def create_lot_layer(self, coordinates, crs_authid=None, crs_zone=""):
         """Create a vector layer and add the lot polygon"""
         if not self.iface:
             return
         
-        project_crs = QgsProject.instance().crs()
-        crs_authid = project_crs.authid() if project_crs and project_crs.isValid() else "EPSG:4326"
+        if not crs_authid:
+            project_crs = QgsProject.instance().crs()
+            crs_authid = project_crs.authid() if project_crs and project_crs.isValid() else "EPSG:4326"
         layer = QgsVectorLayer(f"Polygon?crs={crs_authid}", "Lot Boundary", "memory")
         provider = layer.dataProvider()
         provider.addAttributes([
@@ -562,6 +729,8 @@ class LotPlotterDialog(QtWidgets.QDialog, FORM_CLASS):
             QgsField("perimeter", QVariant.Double),
             QgsField("closure", QVariant.Double),
             QgsField("corners", QVariant.Int),
+            QgsField("crs_authid", QVariant.String),
+            QgsField("crs_zone", QVariant.String),
         ])
         layer.updateFields()
         
@@ -578,6 +747,8 @@ class LotPlotterDialog(QtWidgets.QDialog, FORM_CLASS):
             geometry.length(),
             self.calculate_closure_error(coordinates),
             max(len(coordinates) - 1, 0),
+            crs_authid,
+            crs_zone,
         ])
         provider.addFeatures([feature])
         layer.updateExtents()
