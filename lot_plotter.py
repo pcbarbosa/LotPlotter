@@ -1,16 +1,18 @@
 import csv
+import json
 import os
 import math
 import re
 from qgis.PyQt import QtWidgets, uic
 from qgis.PyQt.QtWidgets import QFileDialog
-from qgis.PyQt.QtCore import QEvent, Qt, QVariant
+from qgis.PyQt.QtCore import QEvent, QSettings, Qt, QVariant
 from qgis.PyQt.QtGui import QBrush, QColor, QFont, QKeySequence, QPen
 from qgis.core import QgsProject, QgsVectorLayer, QgsFeature, QgsGeometry, QgsPointXY, QgsField
 from qgis.gui import QgisInterface
 
 PLUGIN_DIR = os.path.dirname(__file__)
 LOOKUP_DIR = os.path.join(PLUGIN_DIR, 'LookUpData')
+SETTINGS_KEY = 'LotPlotter/last_state'
 SURVEY_TYPES = [
     'CADASTRAL',
     'SUBDIVISION',
@@ -616,6 +618,7 @@ class LotPlotterDialog(QtWidgets.QDialog, FORM_CLASS):
         self.selected_tie_values = {}
         self.lookup_provinces = load_provinces()
         self.current_lot_id = self.generate_lot_id()
+        self._loading_settings = False
         self.setup_project_detail_sections()
         self.setup_table_paste_controls()
         self.setup_sketch_preview()
@@ -632,6 +635,7 @@ class LotPlotterDialog(QtWidgets.QDialog, FORM_CLASS):
             pass
         self.populate_claimant_lookups()
         self.set_corner_count(4)
+        self.load_saved_state()
 
     def setup_project_detail_sections(self):
         if hasattr(self, 'groupBox_tie_point'):
@@ -755,6 +759,106 @@ class LotPlotterDialog(QtWidgets.QDialog, FORM_CLASS):
 
         self.results_text.setMinimumHeight(220)
         self.update_live_sketch()
+
+    def closeEvent(self, event):
+        self.save_state()
+        super().closeEvent(event)
+
+    def reject(self):
+        self.save_state()
+        super().reject()
+
+    def save_state(self):
+        if getattr(self, '_loading_settings', False):
+            return
+        rows = []
+        for row in range(self.table.rowCount()):
+            bearing_item = self.table.item(row, 1)
+            distance_item = self.table.item(row, 2)
+            rows.append({
+                'bearing': bearing_item.text() if bearing_item else '',
+                'distance': distance_item.text() if distance_item else '',
+            })
+        state = {
+            'start_x': self.start_x_input.text(),
+            'start_y': self.start_y_input.text(),
+            'corner_count': self.corner_count_spin.value() if hasattr(self, 'corner_count_spin') else max(len(rows) - 1, 3),
+            'rows': rows,
+            'lot_id': self.lot_id_input.text(),
+            'lot_name': self.lot_name_input.text(),
+            'ge_name': self.ge_name_input.text(),
+            'survey_number': self.survey_number_input.text(),
+            'survey_date': self.survey_date_input.text(),
+            'type': self.type_combo.currentText(),
+            'claimant': self.claimant_input.text(),
+            'island': self.island_combo.currentText(),
+            'province': self.province_detail_combo.currentText(),
+            'municipality': self.municipality_combo.currentText(),
+            'barangay': self.barangay_combo.currentText(),
+            'selected_tie_values': self.selected_tie_values,
+            'results': self.results_text.toPlainText(),
+        }
+        settings = QSettings()
+        settings.setValue(SETTINGS_KEY, json.dumps(state))
+        settings.sync()
+
+    def load_saved_state(self):
+        raw_state = QSettings().value(SETTINGS_KEY, '', type=str)
+        if not raw_state:
+            return
+        try:
+            state = json.loads(raw_state)
+        except (TypeError, ValueError):
+            return
+
+        self._loading_settings = True
+        try:
+            self.start_x_input.setText(str(state.get('start_x', self.start_x_input.text())))
+            self.start_y_input.setText(str(state.get('start_y', self.start_y_input.text())))
+
+            self.current_lot_id = state.get('lot_id') or self.current_lot_id
+            self.lot_id_input.setText(self.current_lot_id)
+            self.lot_name_input.setText(state.get('lot_name', ''))
+            self.ge_name_input.setText(state.get('ge_name', ''))
+            self.survey_number_input.setText(state.get('survey_number', ''))
+            self.survey_date_input.setText(state.get('survey_date', ''))
+            self.type_combo.setCurrentText(state.get('type', self.type_combo.currentText()))
+            self.claimant_input.setText(state.get('claimant', ''))
+            self.island_combo.setCurrentText(state.get('island', self.island_combo.currentText()))
+
+            province_text = state.get('province', '')
+            municipality_text = state.get('municipality', '')
+            barangay_text = state.get('barangay', '')
+            if province_text:
+                self.province_detail_combo.setCurrentText(province_text)
+                self.on_detail_province_changed(self.province_detail_combo.currentIndex())
+            if municipality_text:
+                self.municipality_combo.setCurrentText(municipality_text)
+                self.on_detail_municipality_changed(self.municipality_combo.currentIndex())
+            if barangay_text:
+                self.barangay_combo.setCurrentText(barangay_text)
+
+            rows = state.get('rows') or []
+            try:
+                corner_count = int(state.get('corner_count') or max(len(rows) - 1, 3))
+            except (TypeError, ValueError):
+                corner_count = max(len(rows) - 1, 3)
+            self.set_corner_count(max(corner_count, 3))
+            self.table.blockSignals(True)
+            for row_index, row_data in enumerate(rows[:self.table.rowCount()]):
+                self.table.setItem(row_index, 1, QtWidgets.QTableWidgetItem(str(row_data.get('bearing', ''))))
+                self.table.setItem(row_index, 2, QtWidgets.QTableWidgetItem(str(row_data.get('distance', ''))))
+            self.table.blockSignals(False)
+
+            self.selected_tie_values = state.get('selected_tie_values') or {}
+            self.update_tie_detail_display()
+            saved_results = state.get('results', '')
+            if saved_results:
+                self.results_text.setPlainText(saved_results)
+        finally:
+            self._loading_settings = False
+            self.refresh_line_guides()
+            self.update_live_sketch()
 
     def eventFilter(self, watched, event):
         if watched is self.table and event.type() == QEvent.KeyPress:
@@ -1510,6 +1614,8 @@ class LotPlotter:
     
     def unload(self):
         """Remove the plugin menu item and toolbar icon"""
+        if self.dialog:
+            self.dialog.save_state()
         self.iface.removePluginMenu('&Lot Plotter', self.action)
         self.iface.removeToolBarIcon(self.action)
     
