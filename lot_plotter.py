@@ -599,7 +599,7 @@ class LotPlotterDialog(QtWidgets.QDialog, FORM_CLASS):
         self.lot_details_btn.clicked.connect(self.open_lot_details_dialog)
         self.horizontalLayout.insertWidget(4, self.lot_details_btn)
 
-        self.verticalLayout.insertWidget(1, self.tie_details_group)
+        self.tie_details_group.hide()
         self.claimant_group.hide()
 
         self.province_detail_combo.currentIndexChanged.connect(self.on_detail_province_changed)
@@ -612,6 +612,7 @@ class LotPlotterDialog(QtWidgets.QDialog, FORM_CLASS):
         self.table.horizontalHeader().setSectionResizeMode(0, QtWidgets.QHeaderView.ResizeToContents)
         self.table.horizontalHeader().setSectionResizeMode(1, QtWidgets.QHeaderView.Stretch)
         self.table.horizontalHeader().setSectionResizeMode(2, QtWidgets.QHeaderView.Stretch)
+        self.table.setMinimumHeight(300)
         self.table.blockSignals(False)
         self.table.installEventFilter(self)
         self.table.setSelectionMode(QtWidgets.QAbstractItemView.ExtendedSelection)
@@ -838,7 +839,11 @@ class LotPlotterDialog(QtWidgets.QDialog, FORM_CLASS):
             self.sketch_scene.addText("Enter bearings and distances to preview the lot sketch.")
             return
         coordinates = self.calculate_coordinates(0, 0, corners)
-        points = [(x, -y) for x, y in coordinates]
+        lot_coordinates = self.display_lot_coordinates(self.lot_boundary_coordinates(coordinates))
+        if len(lot_coordinates) < 2:
+            self.sketch_scene.addText("Enter the lot boundary lines after TP-1 to preview the polygon.")
+            return
+        points = [(x, -y) for x, y in lot_coordinates]
         xs = [point[0] for point in points]
         ys = [point[1] for point in points]
         min_x, max_x = min(xs), max(xs)

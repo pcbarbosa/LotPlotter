@@ -45,6 +45,7 @@ A QGIS plugin for plotting lot boundaries based on bearing and distance measurem
 4. **Add Lot Corners**:
    - Enter the number of lot corners; the line table adjusts automatically
    - The table includes a line guide such as `TP-1`, `1-2`, `2-3`, and `4-1`
+   - The `TP-1` row is used only to locate corner 1 from the tie point; it is not drawn as part of the final polygon
    - Click "Add Corner" to add another line row
    - Or copy bearing/distance rows from a spreadsheet and press Ctrl+V in the table, or use "Paste Rows"
    - Enter the **Bearing**
@@ -64,7 +65,7 @@ A QGIS plugin for plotting lot boundaries based on bearing and distance measurem
    - Closure Error (distance from last point to first point)
    - Closure Ratio (1:ratio format - lower is better)
    - All corner coordinates
-   - A live sketch updates as bearings and distances are typed
+   - A live sketch of the lot boundary updates as bearings and distances are typed
 
 7. **Export Coordinates** (optional):
    - Click "Export Coordinates" to save corner coordinates to a CSV file
