@@ -5,7 +5,7 @@ import re
 from qgis.PyQt import QtWidgets, uic
 from qgis.PyQt.QtWidgets import QFileDialog
 from qgis.PyQt.QtCore import QEvent, Qt, QVariant
-from qgis.PyQt.QtGui import QBrush, QColor, QKeySequence, QPen
+from qgis.PyQt.QtGui import QBrush, QColor, QFont, QKeySequence, QPen
 from qgis.core import QgsProject, QgsVectorLayer, QgsFeature, QgsGeometry, QgsPointXY, QgsField
 from qgis.gui import QgisInterface
 
@@ -344,6 +344,28 @@ def load_provinces():
     return provinces
 
 
+def read_dollar_rows(path):
+    rows = []
+    if not os.path.exists(path):
+        return rows
+    with open(path, 'r', encoding='utf-8', errors='ignore') as handle:
+        for line in handle:
+            parts = [part.strip() for part in line.strip().split('$')]
+            if len(parts) >= 2 and parts[0]:
+                rows.append(parts)
+    return rows
+
+
+def load_regions():
+    regions = []
+    for parts in read_dollar_rows(os.path.join(LOOKUP_DIR, 'RegDta0000.Dta')):
+        code = parts[0]
+        short_name = parts[1] if len(parts) > 1 else code
+        label = parts[2] if len(parts) > 2 else short_name
+        regions.append({'code': code, 'short': short_name, 'name': label, 'display': label})
+    return regions
+
+
 def load_tie_points_for_province(province_code):
     path = os.path.join(LOOKUP_DIR, f"{province_code}.csv")
     points = []
@@ -395,76 +417,133 @@ def load_tie_points_for_province(province_code):
 class TiePointChooserDialog(QtWidgets.QDialog):
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.setWindowTitle("Choose Tie Point")
-        self.resize(760, 420)
+        self.setWindowTitle("Tie-Line Description")
+        self.resize(760, 520)
+        self.regions = load_regions()
         self.provinces = load_provinces()
         self.tie_points = []
 
         layout = QtWidgets.QVBoxLayout(self)
+        layout.addWidget(QtWidgets.QLabel("GE-Survey System v2.16"))
 
-        location_group = QtWidgets.QGroupBox("Tie Point")
-        location_form = QtWidgets.QFormLayout(location_group)
+        main_row = QtWidgets.QHBoxLayout()
+        left = QtWidgets.QVBoxLayout()
+        right = QtWidgets.QVBoxLayout()
+
+        tie_group = QtWidgets.QGroupBox("TiePoint:")
+        tie_form = QtWidgets.QFormLayout(tie_group)
+        self.region_combo = QtWidgets.QComboBox()
         self.province_combo = QtWidgets.QComboBox()
-        self.province_combo.setEditable(True)
-        self.tie_point_combo = QtWidgets.QComboBox()
-        self.tie_point_combo.setEditable(True)
-        self.tie_point_combo.setMinimumContentsLength(70)
-        self.tie_point_combo.setMaxVisibleItems(18)
-        location_form.addRow("Province:", self.province_combo)
-        location_form.addRow("Tie Point:", self.tie_point_combo)
-        layout.addWidget(location_group)
+        self.tp_id_edit = QtWidgets.QLineEdit()
+        self.latitude_edit = QtWidgets.QLineEdit()
+        self.longitude_edit = QtWidgets.QLineEdit()
+        tie_form.addRow("Region:", self.region_combo)
+        tie_form.addRow("Province:", self.province_combo)
+        tie_form.addRow("TP Id:", self.tp_id_edit)
+        tie_form.addRow("Latitude:", self.latitude_edit)
+        tie_form.addRow("Longitude:", self.longitude_edit)
+        left.addWidget(tie_group)
 
-        projection_group = QtWidgets.QGroupBox("Coordinate Source")
-        projection_layout = QtWidgets.QHBoxLayout(projection_group)
-        self.ptm_radio = QtWidgets.QRadioButton("PTM")
-        self.prs_radio = QtWidgets.QRadioButton("PRS")
+        projection_group = QtWidgets.QGroupBox("Projection Type")
+        projection_layout = QtWidgets.QVBoxLayout(projection_group)
         self.lpcs_radio = QtWidgets.QRadioButton("LPCS")
-        self.ptm_radio.setChecked(True)
+        self.ptm_radio = QtWidgets.QRadioButton("Ptm")
+        self.prs_radio = QtWidgets.QRadioButton("pRs")
+        projection_layout.addWidget(self.lpcs_radio)
         projection_layout.addWidget(self.ptm_radio)
         projection_layout.addWidget(self.prs_radio)
-        projection_layout.addWidget(self.lpcs_radio)
-        projection_layout.addStretch()
-        layout.addWidget(projection_group)
+        self.ptm_radio.setChecked(True)
+        left.addWidget(projection_group)
 
-        coord_group = QtWidgets.QGroupBox("Coordinates")
-        coord_form = QtWidgets.QFormLayout(coord_group)
-        self.tp_id_edit = QtWidgets.QLineEdit()
-        self.municipality_edit = QtWidgets.QLineEdit()
-        self.survey_edit = QtWidgets.QLineEdit()
-        self.northing_edit = QtWidgets.QLineEdit()
-        self.easting_edit = QtWidgets.QLineEdit()
+        self.type_edit = QtWidgets.QLineEdit()
+        self.li_edit = QtWidgets.QLineEdit()
+        self.date_edit = QtWidgets.QLineEdit()
+        misc_form = QtWidgets.QFormLayout()
+        misc_form.addRow("Survey Type:", self.type_edit)
+        misc_form.addRow("LI / Reference Number:", self.li_edit)
+        misc_form.addRow("Date:", self.date_edit)
+        left.addLayout(misc_form)
+        left.addStretch()
+
+        self.lpcs_north_edit = QtWidgets.QLineEdit()
+        self.lpcs_east_edit = QtWidgets.QLineEdit()
+        self.ptm_north_edit = QtWidgets.QLineEdit()
+        self.ptm_east_edit = QtWidgets.QLineEdit()
+        self.prs_north_edit = QtWidgets.QLineEdit()
+        self.prs_east_edit = QtWidgets.QLineEdit()
         for edit in (
             self.tp_id_edit,
-            self.municipality_edit,
-            self.survey_edit,
-            self.northing_edit,
-            self.easting_edit,
+            self.latitude_edit,
+            self.longitude_edit,
+            self.lpcs_north_edit,
+            self.lpcs_east_edit,
+            self.ptm_north_edit,
+            self.ptm_east_edit,
+            self.prs_north_edit,
+            self.prs_east_edit,
         ):
             edit.setReadOnly(True)
-        coord_form.addRow("TP Id:", self.tp_id_edit)
-        coord_form.addRow("Municipality:", self.municipality_edit)
-        coord_form.addRow("Survey:", self.survey_edit)
-        coord_form.addRow("Northing:", self.northing_edit)
-        coord_form.addRow("Easting:", self.easting_edit)
-        layout.addWidget(coord_group)
+        for title, north_edit, east_edit in (
+            ("LPCS:", self.lpcs_north_edit, self.lpcs_east_edit),
+            ("PTM:", self.ptm_north_edit, self.ptm_east_edit),
+            ("PRS:", self.prs_north_edit, self.prs_east_edit),
+        ):
+            coord_group = QtWidgets.QGroupBox(title)
+            coord_form = QtWidgets.QFormLayout(coord_group)
+            coord_form.addRow("Northing:", north_edit)
+            coord_form.addRow("Easting:", east_edit)
+            right.addWidget(coord_group)
+        right.addStretch()
+
+        main_row.addLayout(left)
+        main_row.addLayout(right)
+        layout.addLayout(main_row)
+
+        tp_group = QtWidgets.QGroupBox("TP Descriptions:")
+        tp_layout = QtWidgets.QVBoxLayout(tp_group)
+        self.description_combo = QtWidgets.QComboBox()
+        self.description_combo.setEditable(True)
+        self.description_combo.setMinimumContentsLength(70)
+        self.description_combo.setSizeAdjustPolicy(QtWidgets.QComboBox.AdjustToMinimumContentsLengthWithIcon)
+        self.description_combo.setMaxVisibleItems(18)
+        self.description_combo.setFont(QFont("Consolas", 9))
+        self.description_combo.view().setFont(QFont("Consolas", 9))
+        self.description_combo.view().setVerticalScrollBarPolicy(Qt.ScrollBarAsNeeded)
+        tp_layout.addWidget(self.description_combo)
+        layout.addWidget(tp_group)
 
         buttons = QtWidgets.QDialogButtonBox(QtWidgets.QDialogButtonBox.Ok | QtWidgets.QDialogButtonBox.Cancel)
         buttons.accepted.connect(self.accept)
         buttons.rejected.connect(self.reject)
         layout.addWidget(buttons)
 
+        self.region_combo.currentIndexChanged.connect(self.populate_provinces)
         self.province_combo.currentIndexChanged.connect(self.populate_tie_points)
-        self.tie_point_combo.currentIndexChanged.connect(self.refresh_selected_point)
-        self.ptm_radio.toggled.connect(self.refresh_selected_point)
-        self.prs_radio.toggled.connect(self.refresh_selected_point)
-        self.lpcs_radio.toggled.connect(self.refresh_selected_point)
+        self.description_combo.currentIndexChanged.connect(self.apply_selected_tie_point)
+        self.ptm_radio.toggled.connect(self.apply_projection_to_primary)
+        self.prs_radio.toggled.connect(self.apply_projection_to_primary)
+        self.lpcs_radio.toggled.connect(self.apply_projection_to_primary)
 
+        self.populate_regions()
+
+    def populate_regions(self):
+        self.region_combo.blockSignals(True)
+        self.region_combo.clear()
+        if self.regions:
+            for region in self.regions:
+                self.region_combo.addItem(region.get('display', region.get('name', '')), region)
+        else:
+            self.region_combo.addItem("All Regions", {'code': '', 'display': 'All Regions'})
+        self.region_combo.blockSignals(False)
         self.populate_provinces()
 
     def populate_provinces(self):
+        region = self.region_combo.currentData() or {}
+        prefix = str(region.get('code', ''))[:2]
+        filtered = [province for province in self.provinces if not prefix or province['code'].startswith(prefix)]
         self.province_combo.blockSignals(True)
         self.province_combo.clear()
-        for province in self.provinces:
+        for province in filtered:
             self.province_combo.addItem(f"{province['code']} - {province['name']}", province)
         self.province_combo.blockSignals(False)
         self.populate_tie_points()
@@ -472,12 +551,12 @@ class TiePointChooserDialog(QtWidgets.QDialog):
     def populate_tie_points(self):
         province = self.province_combo.currentData() or {}
         self.tie_points = load_tie_points_for_province(province.get('code', ''))
-        self.tie_point_combo.blockSignals(True)
-        self.tie_point_combo.clear()
+        self.description_combo.blockSignals(True)
+        self.description_combo.clear()
         for point in self.tie_points:
-            self.tie_point_combo.addItem(point.get('display', point.get('description', '')), point)
-        self.tie_point_combo.blockSignals(False)
-        self.refresh_selected_point()
+            self.description_combo.addItem(point.get('display', point.get('description', '')), point)
+        self.description_combo.blockSignals(False)
+        self.apply_selected_tie_point()
 
     def selected_projection(self):
         if self.prs_radio.isChecked():
@@ -486,24 +565,40 @@ class TiePointChooserDialog(QtWidgets.QDialog):
             return 'lpcs'
         return 'ptm'
 
-    def refresh_selected_point(self):
-        point = self.tie_point_combo.currentData() or {}
-        projection = self.selected_projection()
+    def apply_selected_tie_point(self):
+        point = self.description_combo.currentData() or {}
         self.tp_id_edit.setText(point.get('id', ''))
-        self.municipality_edit.setText(point.get('municipality', ''))
-        self.survey_edit.setText(point.get('survey', ''))
-        self.northing_edit.setText(point.get(f'{projection}_n', ''))
-        self.easting_edit.setText(point.get(f'{projection}_e', ''))
+        self.latitude_edit.setText(point.get('latitude', ''))
+        self.longitude_edit.setText(point.get('longitude', ''))
+        self.type_edit.setText(point.get('survey', ''))
+        self.lpcs_north_edit.setText(point.get('lpcs_n', ''))
+        self.lpcs_east_edit.setText(point.get('lpcs_e', ''))
+        self.ptm_north_edit.setText(point.get('ptm_n', ''))
+        self.ptm_east_edit.setText(point.get('ptm_e', ''))
+        self.prs_north_edit.setText(point.get('prs_n', ''))
+        self.prs_east_edit.setText(point.get('prs_e', ''))
+        self.apply_projection_to_primary()
+
+    def apply_projection_to_primary(self):
+        return
+
+    def projected_values_for(self, projection):
+        if projection == 'lpcs':
+            return self.lpcs_north_edit.text(), self.lpcs_east_edit.text()
+        if projection == 'prs':
+            return self.prs_north_edit.text(), self.prs_east_edit.text()
+        return self.ptm_north_edit.text(), self.ptm_east_edit.text()
 
     def selected_values(self):
-        point = self.tie_point_combo.currentData() or {}
+        point = self.description_combo.currentData() or {}
         projection = self.selected_projection()
+        northing, easting = self.projected_values_for(projection)
         return {
             'point': point,
             'projection': projection.upper(),
-            'northing': point.get(f'{projection}_n', ''),
-            'easting': point.get(f'{projection}_e', ''),
-            'description': point.get('description', self.tie_point_combo.currentText()),
+            'northing': northing,
+            'easting': easting,
+            'description': point.get('description', self.description_combo.currentText()),
         }
 
 
