@@ -705,6 +705,18 @@ class LotPlotterDialog(QtWidgets.QDialog, FORM_CLASS):
         self.municipality_combo.currentIndexChanged.connect(self.on_detail_municipality_changed)
 
     def setup_table_paste_controls(self):
+        self.table_format_guide = QtWidgets.QLabel(
+            "Format guide: first row is the tie line (TP-1). Enter bearings as azimuths "
+            "(45, 135.5) or quadrant bearings (N 45 30 E, S 12 15 W), then distance in meters. "
+            "Example rows: TP-1 | N 45 00 E | 25.00; 1-2 | S 80 30 E | 42.75."
+        )
+        self.table_format_guide.setWordWrap(True)
+        self.table_format_guide.setStyleSheet("color: #555;")
+        try:
+            self.verticalLayout_2.insertWidget(0, self.table_format_guide)
+        except Exception:
+            pass
+
         self.table.blockSignals(True)
         self.table.setColumnCount(3)
         self.table.setHorizontalHeaderLabels(["Line", "Bearing", "Distance"])
