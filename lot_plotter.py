@@ -622,6 +622,7 @@ class LotPlotterDialog(QtWidgets.QDialog, FORM_CLASS):
         self.setup_project_detail_sections()
         self.setup_table_paste_controls()
         self.setup_sketch_preview()
+        self.disable_enter_key_default_buttons()
         
         # Connect buttons
         self.add_corner_btn.clicked.connect(self.add_corner)
@@ -636,6 +637,11 @@ class LotPlotterDialog(QtWidgets.QDialog, FORM_CLASS):
         self.populate_claimant_lookups()
         self.set_corner_count(4)
         self.load_saved_state()
+
+    def disable_enter_key_default_buttons(self):
+        for button in self.findChildren(QtWidgets.QPushButton):
+            button.setDefault(False)
+            button.setAutoDefault(False)
 
     def setup_project_detail_sections(self):
         if hasattr(self, 'groupBox_tie_point'):
