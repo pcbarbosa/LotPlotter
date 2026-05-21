@@ -5,7 +5,7 @@ import re
 from qgis.PyQt import QtWidgets, uic
 from qgis.PyQt.QtWidgets import QFileDialog
 from qgis.PyQt.QtCore import QEvent, Qt, QVariant
-from qgis.PyQt.QtGui import QKeySequence
+from qgis.PyQt.QtGui import QBrush, QColor, QKeySequence, QPen
 from qgis.core import QgsProject, QgsVectorLayer, QgsFeature, QgsGeometry, QgsPointXY, QgsField
 from qgis.gui import QgisInterface
 
@@ -523,6 +523,7 @@ class LotPlotterDialog(QtWidgets.QDialog, FORM_CLASS):
         self.current_lot_id = self.generate_lot_id()
         self.setup_project_detail_sections()
         self.setup_table_paste_controls()
+        self.setup_sketch_preview()
         
         # Connect buttons
         self.add_corner_btn.clicked.connect(self.add_corner)
@@ -535,8 +536,7 @@ class LotPlotterDialog(QtWidgets.QDialog, FORM_CLASS):
         except Exception:
             pass
         self.populate_claimant_lookups()
-        for _ in range(4):
-            self.add_corner()
+        self.set_corner_count(4)
 
     def setup_project_detail_sections(self):
         if hasattr(self, 'groupBox_tie_point'):
@@ -595,22 +595,57 @@ class LotPlotterDialog(QtWidgets.QDialog, FORM_CLASS):
         claimant_form.addRow("Municipality / City:", self.municipality_combo)
         claimant_form.addRow("Barangay:", self.barangay_combo)
 
+        self.lot_details_btn = QtWidgets.QPushButton("Lot Details...")
+        self.lot_details_btn.clicked.connect(self.open_lot_details_dialog)
+        self.horizontalLayout.insertWidget(4, self.lot_details_btn)
+
         self.verticalLayout.insertWidget(1, self.tie_details_group)
-        self.verticalLayout.insertWidget(2, self.claimant_group)
+        self.claimant_group.hide()
 
         self.province_detail_combo.currentIndexChanged.connect(self.on_detail_province_changed)
         self.municipality_combo.currentIndexChanged.connect(self.on_detail_municipality_changed)
 
     def setup_table_paste_controls(self):
+        self.table.blockSignals(True)
+        self.table.setColumnCount(3)
+        self.table.setHorizontalHeaderLabels(["Line", "Bearing", "Distance"])
+        self.table.horizontalHeader().setSectionResizeMode(0, QtWidgets.QHeaderView.ResizeToContents)
+        self.table.horizontalHeader().setSectionResizeMode(1, QtWidgets.QHeaderView.Stretch)
+        self.table.horizontalHeader().setSectionResizeMode(2, QtWidgets.QHeaderView.Stretch)
+        self.table.blockSignals(False)
         self.table.installEventFilter(self)
         self.table.setSelectionMode(QtWidgets.QAbstractItemView.ExtendedSelection)
         self.table.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectItems)
+        self.table.itemChanged.connect(self.on_table_item_changed)
+        self.start_x_input.textChanged.connect(self.update_live_sketch)
+        self.start_y_input.textChanged.connect(self.update_live_sketch)
+        self.corner_count_label = QtWidgets.QLabel("Corners:")
+        self.corner_count_spin = QtWidgets.QSpinBox()
+        self.corner_count_spin.setMinimum(3)
+        self.corner_count_spin.setMaximum(500)
+        self.corner_count_spin.setValue(max(self.table.rowCount(), 4))
+        self.corner_count_spin.valueChanged.connect(self.set_corner_count)
         self.paste_rows_btn = QtWidgets.QPushButton("Paste Rows")
         self.paste_rows_btn.clicked.connect(self.paste_rows_from_clipboard)
         try:
+            self.horizontalLayout_2.insertWidget(0, self.corner_count_label)
+            self.horizontalLayout_2.insertWidget(1, self.corner_count_spin)
             self.horizontalLayout_2.insertWidget(2, self.paste_rows_btn)
         except Exception:
-            self.add_corner_btn.parentWidget().layout().insertWidget(2, self.paste_rows_btn)
+            layout = self.add_corner_btn.parentWidget().layout()
+            layout.insertWidget(0, self.corner_count_label)
+            layout.insertWidget(1, self.corner_count_spin)
+            layout.insertWidget(2, self.paste_rows_btn)
+
+    def setup_sketch_preview(self):
+        self.sketch_group = QtWidgets.QGroupBox("Live Sketch")
+        sketch_layout = QtWidgets.QVBoxLayout(self.sketch_group)
+        self.sketch_scene = QtWidgets.QGraphicsScene(self)
+        self.sketch_view = QtWidgets.QGraphicsView(self.sketch_scene)
+        self.sketch_view.setMinimumHeight(220)
+        sketch_layout.addWidget(self.sketch_view)
+        self.verticalLayout.insertWidget(4, self.sketch_group)
+        self.update_live_sketch()
 
     def eventFilter(self, watched, event):
         if watched is self.table and event.type() == QEvent.KeyPress:
@@ -623,14 +658,22 @@ class LotPlotterDialog(QtWidgets.QDialog, FORM_CLASS):
         """Add a new corner row to the table"""
         row = self.table.rowCount()
         self.table.insertRow(row)
+        self.set_line_guide_item(row)
         self.table.setVerticalHeaderItem(row, QtWidgets.QTableWidgetItem(str(row + 1)))
+        self.sync_corner_count_spin()
+        self.refresh_line_guides()
         
     def remove_corner(self):
         """Remove selected corner row"""
+        if self.table.rowCount() <= self.corner_count_spin.minimum() + 1:
+            return
         row = self.table.currentRow()
         if row >= 0:
             self.table.removeRow(row)
             self.refresh_corner_numbers()
+            self.refresh_line_guides()
+            self.sync_corner_count_spin()
+            self.update_live_sketch()
     
     def clear_all(self):
         """Clear all corners"""
@@ -642,12 +685,61 @@ class LotPlotterDialog(QtWidgets.QDialog, FORM_CLASS):
         self.current_lot_id = self.generate_lot_id()
         self.lot_id_input.setText(self.current_lot_id)
         self.update_tie_detail_display()
-        for _ in range(4):
-            self.add_corner()
+        self.set_corner_count(4)
 
     def refresh_corner_numbers(self):
         for row in range(self.table.rowCount()):
             self.table.setVerticalHeaderItem(row, QtWidgets.QTableWidgetItem(str(row + 1)))
+
+    def set_corner_count(self, count):
+        target_rows = int(count) + 1
+        self.table.blockSignals(True)
+        while self.table.rowCount() < target_rows:
+            row = self.table.rowCount()
+            self.table.insertRow(row)
+            self.set_line_guide_item(row)
+            self.table.setVerticalHeaderItem(row, QtWidgets.QTableWidgetItem(str(row + 1)))
+        while self.table.rowCount() > target_rows:
+            self.table.removeRow(self.table.rowCount() - 1)
+        self.table.blockSignals(False)
+        self.refresh_corner_numbers()
+        self.refresh_line_guides()
+        self.sync_corner_count_spin()
+        self.update_live_sketch()
+
+    def sync_corner_count_spin(self):
+        if not hasattr(self, 'corner_count_spin'):
+            return
+        self.corner_count_spin.blockSignals(True)
+        corner_count = max(self.table.rowCount() - 1, self.corner_count_spin.minimum())
+        self.corner_count_spin.setValue(corner_count)
+        self.corner_count_spin.blockSignals(False)
+
+    def set_line_guide_item(self, row):
+        item = QtWidgets.QTableWidgetItem("")
+        item.setFlags(item.flags() & ~Qt.ItemIsEditable)
+        item.setBackground(QBrush(QColor("#f0f0f0")))
+        self.table.setItem(row, 0, item)
+
+    def refresh_line_guides(self):
+        count = self.table.rowCount()
+        for row in range(count):
+            item = self.table.item(row, 0)
+            if item is None:
+                self.set_line_guide_item(row)
+                item = self.table.item(row, 0)
+            if row == 0:
+                label = "TP-1"
+            elif row == count - 1:
+                label = f"{row}-{1}"
+            else:
+                label = f"{row}-{row + 1}"
+            item.setText(label)
+
+    def on_table_item_changed(self, item):
+        if item and item.column() == 0:
+            return
+        self.update_live_sketch()
 
     def paste_rows_from_clipboard(self):
         text = QtWidgets.QApplication.clipboard().text()
@@ -671,15 +763,18 @@ class LotPlotterDialog(QtWidgets.QDialog, FORM_CLASS):
 
         for offset, (bearing, distance) in enumerate(rows):
             row = start_row + offset
-            self.table.setItem(row, 0, QtWidgets.QTableWidgetItem(bearing))
-            self.table.setItem(row, 1, QtWidgets.QTableWidgetItem(distance))
+            self.table.setItem(row, 1, QtWidgets.QTableWidgetItem(bearing))
+            self.table.setItem(row, 2, QtWidgets.QTableWidgetItem(distance))
         self.refresh_corner_numbers()
+        self.refresh_line_guides()
+        self.sync_corner_count_spin()
+        self.update_live_sketch()
         self.results_text.setText(f"Pasted {len(rows)} bearing/distance row(s).")
 
     def first_empty_table_row(self):
         for row in range(self.table.rowCount()):
-            bearing_item = self.table.item(row, 0)
-            distance_item = self.table.item(row, 1)
+            bearing_item = self.table.item(row, 1)
+            distance_item = self.table.item(row, 2)
             bearing_blank = bearing_item is None or not bearing_item.text().strip()
             distance_blank = distance_item is None or not distance_item.text().strip()
             if bearing_blank and distance_blank:
@@ -702,6 +797,9 @@ class LotPlotterDialog(QtWidgets.QDialog, FORM_CLASS):
 
             bearing = cells[0]
             distance = cells[1]
+            if parse_bearing(bearing) is None and len(cells) >= 3:
+                bearing = cells[1]
+                distance = cells[2]
             if parse_bearing(bearing) is None or parse_float(distance) is None:
                 continue
             rows.append((bearing, distance))
@@ -712,6 +810,58 @@ class LotPlotterDialog(QtWidgets.QDialog, FORM_CLASS):
         if not match:
             return []
         return [match.group(1).strip(), match.group(2).strip()]
+
+    def preview_corners_from_table(self):
+        corners = []
+        for row in range(self.table.rowCount()):
+            bearing_item = self.table.item(row, 1)
+            distance_item = self.table.item(row, 2)
+            if not bearing_item or not distance_item:
+                continue
+            bearing_text = bearing_item.text().strip()
+            distance_text = distance_item.text().strip()
+            if not bearing_text or not distance_text:
+                continue
+            bearing = parse_bearing(bearing_text)
+            distance = parse_float(distance_text)
+            if bearing is None or distance is None or distance <= 0:
+                continue
+            corners.append({'bearing': bearing, 'bearing_text': bearing_text, 'distance': distance})
+        return corners
+
+    def update_live_sketch(self):
+        if not hasattr(self, 'sketch_scene'):
+            return
+        self.sketch_scene.clear()
+        corners = self.preview_corners_from_table()
+        if not corners:
+            self.sketch_scene.addText("Enter bearings and distances to preview the lot sketch.")
+            return
+        coordinates = self.calculate_coordinates(0, 0, corners)
+        points = [(x, -y) for x, y in coordinates]
+        xs = [point[0] for point in points]
+        ys = [point[1] for point in points]
+        min_x, max_x = min(xs), max(xs)
+        min_y, max_y = min(ys), max(ys)
+        width = max(max_x - min_x, 1)
+        height = max(max_y - min_y, 1)
+        margin = max(width, height) * 0.15
+
+        line_pen = QPen(QColor("#1f77b4"), 2)
+        close_pen = QPen(QColor("#888888"), 1, Qt.DashLine)
+        point_brush = QBrush(QColor("#1f77b4"))
+        for index in range(len(points) - 1):
+            x1, y1 = points[index]
+            x2, y2 = points[index + 1]
+            self.sketch_scene.addLine(x1, y1, x2, y2, line_pen)
+            self.sketch_scene.addEllipse(x1 - 1.5, y1 - 1.5, 3, 3, line_pen, point_brush)
+            self.sketch_scene.addText(str(index + 1)).setPos(x1 + 2, y1 + 2)
+        if len(points) > 2:
+            self.sketch_scene.addLine(points[-1][0], points[-1][1], points[0][0], points[0][1], close_pen)
+        self.sketch_scene.addEllipse(points[-1][0] - 1.5, points[-1][1] - 1.5, 3, 3, line_pen, point_brush)
+
+        self.sketch_scene.setSceneRect(min_x - margin, min_y - margin, width + 2 * margin, height + 2 * margin)
+        self.sketch_view.fitInView(self.sketch_scene.sceneRect(), Qt.KeepAspectRatio)
 
     def generate_lot_id(self):
         existing = [
@@ -844,22 +994,114 @@ class LotPlotterDialog(QtWidgets.QDialog, FORM_CLASS):
             'tie_east': parse_float(self.selected_tie_values.get('easting')),
             'tie_name': self.selected_tie_values.get('description', point.get('description', '')),
         }
+
+    def open_lot_details_dialog(self):
+        dialog = QtWidgets.QDialog(self)
+        dialog.setWindowTitle("Lot / Claimant Details")
+        dialog.resize(520, 520)
+        layout = QtWidgets.QVBoxLayout(dialog)
+        form = QtWidgets.QFormLayout()
+        layout.addLayout(form)
+
+        lot_id = QtWidgets.QLineEdit(self.lot_id_input.text())
+        lot_id.setReadOnly(True)
+        lot_name = QtWidgets.QLineEdit(self.lot_name_input.text())
+        ge_name = QtWidgets.QLineEdit(self.ge_name_input.text())
+        survey_number = QtWidgets.QLineEdit(self.survey_number_input.text())
+        survey_date = QtWidgets.QLineEdit(self.survey_date_input.text())
+        type_combo = self.clone_combo(self.type_combo)
+        claimant = QtWidgets.QLineEdit(self.claimant_input.text())
+        island_combo = self.clone_combo(self.island_combo)
+        province_combo = QtWidgets.QComboBox()
+        province_combo.setEditable(True)
+        for province in self.lookup_provinces:
+            province_combo.addItem(province['name'], province)
+        province_combo.setCurrentText(self.province_detail_combo.currentText())
+        municipality_combo = QtWidgets.QComboBox()
+        municipality_combo.setEditable(True)
+        barangay_combo = QtWidgets.QComboBox()
+        barangay_combo.setEditable(True)
+
+        def populate_municipalities():
+            province = province_combo.currentData() or {}
+            island = PROVINCE_ISLANDS.get(normalize_lookup_name(province.get('name', province_combo.currentText())))
+            if island:
+                island_combo.setCurrentText(island)
+            current = municipality_combo.currentText()
+            municipality_combo.blockSignals(True)
+            municipality_combo.clear()
+            for municipality in load_municipalities_for_province(province.get('code', '')):
+                municipality_combo.addItem(municipality['name'], municipality)
+            municipality_combo.setCurrentText(current or self.municipality_combo.currentText())
+            municipality_combo.blockSignals(False)
+            populate_barangays()
+
+        def populate_barangays():
+            municipality = municipality_combo.currentData() or {}
+            current = barangay_combo.currentText()
+            barangay_combo.clear()
+            for barangay in load_barangays_for_municipality(municipality.get('code', '')):
+                barangay_combo.addItem(barangay['name'], barangay)
+            barangay_combo.setCurrentText(current or self.barangay_combo.currentText())
+
+        province_combo.currentIndexChanged.connect(populate_municipalities)
+        municipality_combo.currentIndexChanged.connect(populate_barangays)
+        populate_municipalities()
+
+        form.addRow("Lot ID:", lot_id)
+        form.addRow("Lot Name / Number:", lot_name)
+        form.addRow("GE / Surveyor Name:", ge_name)
+        form.addRow("Survey Number:", survey_number)
+        form.addRow("Survey Date:", survey_date)
+        form.addRow("Type:", type_combo)
+        form.addRow("Claimant:", claimant)
+        form.addRow("Island:", island_combo)
+        form.addRow("Province:", province_combo)
+        form.addRow("Municipality / City:", municipality_combo)
+        form.addRow("Barangay:", barangay_combo)
+
+        buttons = QtWidgets.QDialogButtonBox(QtWidgets.QDialogButtonBox.Ok | QtWidgets.QDialogButtonBox.Cancel)
+        buttons.accepted.connect(dialog.accept)
+        buttons.rejected.connect(dialog.reject)
+        layout.addWidget(buttons)
+        if dialog.exec_() == QtWidgets.QDialog.Accepted:
+            self.lot_name_input.setText(lot_name.text())
+            self.ge_name_input.setText(ge_name.text())
+            self.survey_number_input.setText(survey_number.text())
+            self.survey_date_input.setText(survey_date.text())
+            self.type_combo.setCurrentText(type_combo.currentText())
+            self.claimant_input.setText(claimant.text())
+            self.island_combo.setCurrentText(island_combo.currentText())
+            self.province_detail_combo.setCurrentText(province_combo.currentText())
+            self.municipality_combo.setCurrentText(municipality_combo.currentText())
+            self.barangay_combo.setCurrentText(barangay_combo.currentText())
+
+    def clone_combo(self, source):
+        combo = QtWidgets.QComboBox()
+        combo.setEditable(source.isEditable())
+        for index in range(source.count()):
+            combo.addItem(source.itemText(index))
+        combo.setCurrentText(source.currentText())
+        return combo
         
     def get_corners_from_table(self):
         """Extract bearing/distance data from table"""
         corners = []
         for row in range(self.table.rowCount()):
             try:
-                bearing_item = self.table.item(row, 0)
-                distance_item = self.table.item(row, 1)
-                
-                if bearing_item and distance_item:
-                    bearing_text = bearing_item.text().strip()
-                    distance = parse_float(distance_item.text())
-                    bearing = parse_bearing(bearing_text)
-                    if bearing is None or distance is None or distance <= 0:
-                        raise ValueError
-                    corners.append({'bearing': bearing, 'bearing_text': bearing_text, 'distance': distance})
+                bearing_item = self.table.item(row, 1)
+                distance_item = self.table.item(row, 2)
+
+                bearing_text = bearing_item.text().strip() if bearing_item else ""
+                distance_text = distance_item.text().strip() if distance_item else ""
+                if not bearing_text or not distance_text:
+                    QtWidgets.QMessageBox.warning(self, "Input Error", f"Row {row + 1}: Missing bearing or distance.")
+                    return None
+                distance = parse_float(distance_text)
+                bearing = parse_bearing(bearing_text)
+                if bearing is None or distance is None or distance <= 0:
+                    raise ValueError
+                corners.append({'bearing': bearing, 'bearing_text': bearing_text, 'distance': distance})
             except ValueError:
                 QtWidgets.QMessageBox.warning(self, "Input Error", 
                     f"Row {row + 1}: Invalid bearing or distance value.\n\n"
@@ -877,17 +1119,18 @@ class LotPlotterDialog(QtWidgets.QDialog, FORM_CLASS):
                 raise ValueError("Starting X and Y coordinates must be numeric.")
             corners = self.get_corners_from_table()
             
-            if not corners or len(corners) < 3:
+            if not corners or len(corners) < 4:
                 QtWidgets.QMessageBox.warning(self, "Input Error", 
-                    "Please enter at least 3 corners")
+                    "Please enter the tie line and at least 3 lot boundary lines.")
                 return
                 
             # Calculate coordinates
             coordinates = self.calculate_coordinates(start_x, start_y, corners)
-            self.calculated_coordinates = coordinates  # Store for export
-            self.autocad_script = self.generate_autocad_script(coordinates)
-            area = self.calculate_area(coordinates)
-            closure_error = self.calculate_closure_error(coordinates)
+            lot_coordinates = self.lot_boundary_coordinates(coordinates)
+            self.calculated_coordinates = lot_coordinates  # Store for export
+            self.autocad_script = self.generate_autocad_script(lot_coordinates)
+            area = self.calculate_area(lot_coordinates)
+            closure_error = self.calculate_closure_error(lot_coordinates)
             metadata = self.lot_metadata(area)
             
             # Display results with coordinates
@@ -912,16 +1155,17 @@ class LotPlotterDialog(QtWidgets.QDialog, FORM_CLASS):
                     f"(azimuth {corner['bearing']:.6f})  {corner['distance']:.3f}\n"
                 )
             results += "\n"
-            results += f"Corner Coordinates:\n"
-            for i, (x, y) in enumerate(coordinates):
+            results += f"Lot Corner Coordinates:\n"
+            display_coordinates = self.display_lot_coordinates(lot_coordinates)
+            for i, (x, y) in enumerate(display_coordinates, start=1):
                 results += f"  Corner {i}: ({x:.2f}, {y:.2f})\n"
             results += f"\n=== CALCULATIONS ===\n"
             results += f"Area: {area:.2f} sq units\n"
             results += f"Closure Error: {closure_error:.4f} units\n"
-            results += f"Number of corners: {len(corners)}\n"
+            results += f"Number of corners: {len(display_coordinates)}\n"
             
             # Closure ratio (acceptable usually < 1:1000)
-            perimeter = self.calculate_perimeter(coordinates)
+            perimeter = self.calculate_perimeter(lot_coordinates)
             if perimeter > 0 and closure_error > 0:
                 results += f"Closure Ratio: 1:{perimeter/closure_error:.0f}\n"
             elif perimeter > 0:
@@ -933,7 +1177,7 @@ class LotPlotterDialog(QtWidgets.QDialog, FORM_CLASS):
             self.results_text.setText(results)
             
             # Create and add layer to map
-            self.create_lot_layer(coordinates, metadata, crs_authid, crs_zone, crs_info.get('force_unknown', False))
+            self.create_lot_layer(lot_coordinates, metadata, crs_authid, crs_zone, crs_info.get('force_unknown', False))
             
             QtWidgets.QMessageBox.information(self, "Success", 
                 f"Lot plotted successfully!\nArea: {area:.2f} sq units\nClosure Error: {closure_error:.4f}")
@@ -970,6 +1214,18 @@ class LotPlotterDialog(QtWidgets.QDialog, FORM_CLASS):
             lines.append(f"{x:.3f},{y:.3f}")
         lines.append("C")
         return "\n".join(lines)
+
+    def lot_boundary_coordinates(self, traverse_coordinates):
+        return list(traverse_coordinates[1:])
+
+    def display_lot_coordinates(self, lot_coordinates):
+        coordinates = list(lot_coordinates)
+        if len(coordinates) > 1:
+            first = coordinates[0]
+            last = coordinates[-1]
+            if math.hypot(last[0] - first[0], last[1] - first[1]) < 1e-7:
+                coordinates.pop()
+        return coordinates
     
     def calculate_area(self, coordinates):
         """Calculate area using Shoelace formula"""
@@ -1081,8 +1337,8 @@ class LotPlotterDialog(QtWidgets.QDialog, FORM_CLASS):
         layer.updateFields()
         
         # Create feature with polygon geometry
-        points = [QgsPointXY(x, y) for x, y in coordinates]
-        points.append(QgsPointXY(coordinates[0][0], coordinates[0][1]))  # Close polygon
+        points = [QgsPointXY(x, y) for x, y in self.display_lot_coordinates(coordinates)]
+        points.append(QgsPointXY(points[0].x(), points[0].y()))  # Close polygon
         
         feature = QgsFeature()
         geometry = QgsGeometry.fromPolygonXY([points])

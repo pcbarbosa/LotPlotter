@@ -36,13 +36,16 @@ A QGIS plugin for plotting lot boundaries based on bearing and distance measurem
    - Default is (0, 0)
 
 3. **Fill Lot / Claimant Details**:
+   - Click "Lot Details..." to open the lot/claimant details window
    - Lot ID is generated automatically
    - Enter lot name/number, GE/surveyor, survey number/date, claimant, and survey type
    - Island, province, municipality/city, and barangay dropdowns are populated from `LookUpData`
    - Selected tie point name/northing/easting are stored as generated layer fields
 
 4. **Add Lot Corners**:
-   - Click "Add Corner" to add a new row
+   - Enter the number of lot corners; the line table adjusts automatically
+   - The table includes a line guide such as `TP-1`, `1-2`, `2-3`, and `4-1`
+   - Click "Add Corner" to add another line row
    - Or copy bearing/distance rows from a spreadsheet and press Ctrl+V in the table, or use "Paste Rows"
    - Enter the **Bearing**
      - Decimal azimuth: `0`, `90`, `180`, `270`
@@ -61,6 +64,7 @@ A QGIS plugin for plotting lot boundaries based on bearing and distance measurem
    - Closure Error (distance from last point to first point)
    - Closure Ratio (1:ratio format - lower is better)
    - All corner coordinates
+   - A live sketch updates as bearings and distances are typed
 
 7. **Export Coordinates** (optional):
    - Click "Export Coordinates" to save corner coordinates to a CSV file
