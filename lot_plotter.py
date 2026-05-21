@@ -740,7 +740,20 @@ class LotPlotterDialog(QtWidgets.QDialog, FORM_CLASS):
         self.sketch_view = QtWidgets.QGraphicsView(self.sketch_scene)
         self.sketch_view.setMinimumHeight(220)
         sketch_layout.addWidget(self.sketch_view)
-        self.verticalLayout.insertWidget(4, self.sketch_group)
+
+        result_index = self.verticalLayout.indexOf(self.groupBox_3) if hasattr(self, 'groupBox_3') else -1
+        self.plot_results_row = QtWidgets.QWidget()
+        plot_results_layout = QtWidgets.QHBoxLayout(self.plot_results_row)
+        plot_results_layout.setContentsMargins(0, 0, 0, 0)
+        plot_results_layout.addWidget(self.sketch_group, 1)
+        if result_index >= 0:
+            self.verticalLayout.removeWidget(self.groupBox_3)
+            plot_results_layout.addWidget(self.groupBox_3, 1)
+            self.verticalLayout.insertWidget(result_index, self.plot_results_row)
+        else:
+            self.verticalLayout.insertWidget(4, self.plot_results_row)
+
+        self.results_text.setMinimumHeight(220)
         self.update_live_sketch()
 
     def eventFilter(self, watched, event):
