@@ -13,6 +13,6 @@ tags=cadastral,surveying,lot,plotting
 homepage=
 tracker=
 repository=
-icon=icon.png
+icon=icon.svg
 experimental=False
 deprecated=False
