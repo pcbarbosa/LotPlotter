@@ -910,6 +910,7 @@ class LotPlotterDialog(QtWidgets.QDialog, FORM_CLASS):
                 pass
 
         self.table.blockSignals(True)
+        self.groupBox_2.setMinimumHeight(240)
         self.table.setColumnCount(3)
         self.table.setHorizontalHeaderLabels(["Line", "Bearing", "Distance"])
         self.table.horizontalHeader().setSectionResizeMode(0, QtWidgets.QHeaderView.ResizeToContents)
@@ -931,9 +932,12 @@ class LotPlotterDialog(QtWidgets.QDialog, FORM_CLASS):
         self.corner_count_spin.setMaximum(500)
         self.corner_count_spin.setValue(max(self.table.rowCount(), 4))
         self.corner_count_spin.valueChanged.connect(self.set_corner_count)
+        self.corner_count_spin.setFixedWidth(70)
         if not hasattr(self, 'paste_rows_btn'):
             self.paste_rows_btn = QtWidgets.QPushButton("Paste Rows")
         self.paste_rows_btn.clicked.connect(self.paste_rows_from_clipboard)
+        for button in (self.add_corner_btn, self.remove_corner_btn, self.paste_rows_btn):
+            button.setMinimumWidth(92)
         if self.horizontalLayout_2.indexOf(self.corner_count_spin) < 0:
             try:
                 self.horizontalLayout_2.insertWidget(0, self.corner_count_label)
@@ -947,18 +951,29 @@ class LotPlotterDialog(QtWidgets.QDialog, FORM_CLASS):
 
     def setup_sketch_preview(self):
         if not hasattr(self, 'sketch_group'):
-            self.sketch_group = QtWidgets.QGroupBox("Live Sketch")
+            self.sketch_group = QtWidgets.QGroupBox("Sketch")
             sketch_layout = QtWidgets.QVBoxLayout(self.sketch_group)
         else:
+            self.sketch_group.setTitle("Sketch")
             sketch_layout = self.sketch_group.layout() or QtWidgets.QVBoxLayout(self.sketch_group)
         self.sketch_scene = QtWidgets.QGraphicsScene(self)
+        self.sketch_zoom = 1.0
+        self.sketch_auto_fit = True
         if not hasattr(self, 'sketch_view'):
             self.sketch_view = QtWidgets.QGraphicsView()
             sketch_layout.addWidget(self.sketch_view)
         self.sketch_view.setScene(self.sketch_scene)
         self.sketch_view.setMinimumHeight(120)
+        self.sketch_view.setDragMode(QtWidgets.QGraphicsView.ScrollHandDrag)
+        self.sketch_view.setTransformationAnchor(QtWidgets.QGraphicsView.AnchorUnderMouse)
+        self.sketch_view.setResizeAnchor(QtWidgets.QGraphicsView.AnchorViewCenter)
+        self.sketch_view.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        self.sketch_view.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        self.sketch_view.viewport().installEventFilter(self)
         if sketch_layout.indexOf(self.sketch_view) < 0:
             sketch_layout.addWidget(self.sketch_view)
+
+        self.setup_sketch_zoom_controls(sketch_layout)
 
         if not hasattr(self, 'plot_results_splitter'):
             result_index = self.verticalLayout.indexOf(self.groupBox_3) if hasattr(self, 'groupBox_3') else -1
@@ -976,6 +991,43 @@ class LotPlotterDialog(QtWidgets.QDialog, FORM_CLASS):
 
         self.results_text.setMinimumHeight(120)
         self.update_live_sketch()
+
+    def setup_sketch_zoom_controls(self, sketch_layout):
+        created_row = False
+        if not hasattr(self, 'sketch_zoom_row'):
+            self.sketch_zoom_row = QtWidgets.QWidget()
+            zoom_layout = QtWidgets.QHBoxLayout(self.sketch_zoom_row)
+            zoom_layout.setContentsMargins(0, 0, 0, 0)
+            self.sketch_zoom_out_btn = QtWidgets.QPushButton("-")
+            self.sketch_zoom_fit_btn = QtWidgets.QPushButton("Fit")
+            self.sketch_zoom_in_btn = QtWidgets.QPushButton("+")
+            created_row = True
+        for button in (self.sketch_zoom_out_btn, self.sketch_zoom_fit_btn, self.sketch_zoom_in_btn):
+            button.setFixedWidth(42)
+        self.sketch_zoom_out_btn.clicked.connect(lambda: self.zoom_sketch(0.8))
+        self.sketch_zoom_fit_btn.clicked.connect(self.fit_sketch_view)
+        self.sketch_zoom_in_btn.clicked.connect(lambda: self.zoom_sketch(1.25))
+        if created_row:
+            zoom_layout.addStretch()
+            zoom_layout.addWidget(self.sketch_zoom_out_btn)
+            zoom_layout.addWidget(self.sketch_zoom_fit_btn)
+            zoom_layout.addWidget(self.sketch_zoom_in_btn)
+            sketch_layout.insertWidget(0, self.sketch_zoom_row)
+
+    def zoom_sketch(self, factor):
+        if not hasattr(self, 'sketch_view'):
+            return
+        self.sketch_auto_fit = False
+        self.sketch_zoom = max(0.1, min(self.sketch_zoom * factor, 50.0))
+        self.sketch_view.scale(factor, factor)
+
+    def fit_sketch_view(self):
+        if not hasattr(self, 'sketch_view') or self.sketch_scene.sceneRect().isNull():
+            return
+        self.sketch_auto_fit = True
+        self.sketch_zoom = 1.0
+        self.sketch_view.resetTransform()
+        self.sketch_view.fitInView(self.sketch_scene.sceneRect(), Qt.KeepAspectRatio)
 
     def closeEvent(self, event):
         self.save_state()
@@ -1083,6 +1135,10 @@ class LotPlotterDialog(QtWidgets.QDialog, FORM_CLASS):
             self.update_live_sketch()
 
     def eventFilter(self, watched, event):
+        if hasattr(self, 'sketch_view') and watched is self.sketch_view.viewport() and event.type() == QEvent.Wheel:
+            factor = 1.25 if event.angleDelta().y() > 0 else 0.8
+            self.zoom_sketch(factor)
+            return True
         if watched is self.table and event.type() == QEvent.KeyPress:
             if event.matches(QKeySequence.Paste):
                 self.paste_rows_from_clipboard()
@@ -1300,7 +1356,8 @@ class LotPlotterDialog(QtWidgets.QDialog, FORM_CLASS):
         self.sketch_scene.addEllipse(points[-1][0] - 1.5, points[-1][1] - 1.5, 3, 3, line_pen, point_brush)
 
         self.sketch_scene.setSceneRect(min_x - margin, min_y - margin, width + 2 * margin, height + 2 * margin)
-        self.sketch_view.fitInView(self.sketch_scene.sceneRect(), Qt.KeepAspectRatio)
+        if self.sketch_auto_fit:
+            self.fit_sketch_view()
 
     def generate_lot_id(self):
         existing = [

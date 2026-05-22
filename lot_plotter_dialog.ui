@@ -155,6 +155,12 @@
       <enum>Qt::Vertical</enum>
      </property>
      <widget class="QGroupBox" name="groupBox_2">
+      <property name="minimumSize">
+       <size>
+        <width>0</width>
+        <height>240</height>
+       </size>
+      </property>
       <property name="title">
        <string>Lot Lines (Bearing/Azimuth, Distance)</string>
       </property>
@@ -214,6 +220,12 @@
          </item>
          <item>
           <widget class="QSpinBox" name="corner_count_spin">
+           <property name="minimumSize">
+            <size>
+             <width>70</width>
+             <height>0</height>
+            </size>
+           </property>
            <property name="minimum">
             <number>3</number>
            </property>
@@ -227,6 +239,12 @@
          </item>
          <item>
           <widget class="QPushButton" name="add_corner_btn">
+           <property name="minimumSize">
+            <size>
+             <width>92</width>
+             <height>0</height>
+            </size>
+           </property>
            <property name="text">
             <string>Add Corner</string>
            </property>
@@ -234,6 +252,12 @@
          </item>
          <item>
           <widget class="QPushButton" name="remove_corner_btn">
+           <property name="minimumSize">
+            <size>
+             <width>92</width>
+             <height>0</height>
+            </size>
+           </property>
            <property name="text">
             <string>Remove Corner</string>
            </property>
@@ -262,9 +286,79 @@
       </property>
       <widget class="QGroupBox" name="sketch_group">
        <property name="title">
-        <string>Live Sketch</string>
+        <string>Sketch</string>
        </property>
        <layout class="QVBoxLayout" name="sketch_layout">
+        <item>
+         <widget class="QWidget" name="sketch_zoom_row" native="true">
+          <layout class="QHBoxLayout" name="sketch_zoom_layout">
+           <property name="leftMargin">
+            <number>0</number>
+           </property>
+           <property name="topMargin">
+            <number>0</number>
+           </property>
+           <property name="rightMargin">
+            <number>0</number>
+           </property>
+           <property name="bottomMargin">
+            <number>0</number>
+           </property>
+           <item>
+            <spacer name="sketch_zoom_spacer">
+             <property name="orientation">
+              <enum>Qt::Horizontal</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>40</width>
+               <height>20</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+           <item>
+            <widget class="QPushButton" name="sketch_zoom_out_btn">
+             <property name="maximumSize">
+              <size>
+               <width>42</width>
+               <height>16777215</height>
+              </size>
+             </property>
+             <property name="text">
+              <string>-</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QPushButton" name="sketch_zoom_fit_btn">
+             <property name="maximumSize">
+              <size>
+               <width>42</width>
+               <height>16777215</height>
+              </size>
+             </property>
+             <property name="text">
+              <string>Fit</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QPushButton" name="sketch_zoom_in_btn">
+             <property name="maximumSize">
+              <size>
+               <width>42</width>
+               <height>16777215</height>
+              </size>
+             </property>
+             <property name="text">
+              <string>+</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+        </item>
         <item>
          <widget class="QGraphicsView" name="sketch_view">
           <property name="minimumSize">
@@ -272,6 +366,12 @@
             <width>0</width>
             <height>120</height>
            </size>
+          </property>
+          <property name="horizontalScrollBarPolicy">
+           <enum>Qt::ScrollBarAlwaysOff</enum>
+          </property>
+          <property name="verticalScrollBarPolicy">
+           <enum>Qt::ScrollBarAlwaysOff</enum>
           </property>
          </widget>
         </item>
