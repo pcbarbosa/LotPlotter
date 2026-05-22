@@ -25,6 +25,15 @@ Repository: https://github.com/pcbarbosa/LotPlotter.git
 2. Restart QGIS
 3. Enable the plugin in **Plugins > Manage and Install Plugins** (search for "Lot Plotter")
 
+## Qt Designer Layouts
+
+Editable Qt Designer files are included for each dialog:
+- `lot_plotter_dialog.ui` - main plugin window
+- `tie_point_chooser_dialog.ui` - choose tie point window
+- `lot_details_dialog.ui` - lot / claimant details window
+
+The tie point and lot details windows are currently still built in Python. These `.ui` files are layout templates for editing; after updating them in Qt Designer, the code can be wired to load the edited layouts.
+
 ## Usage
 
 ### Basic Workflow

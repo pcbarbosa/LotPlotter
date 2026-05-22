@@ -1,0 +1,380 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>TiePointChooserDialog</class>
+ <widget class="QDialog" name="TiePointChooserDialog">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>760</width>
+    <height>520</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Tie-Line Description</string>
+  </property>
+  <layout class="QVBoxLayout" name="verticalLayout">
+   <item>
+    <widget class="QLabel" name="title_label">
+     <property name="text">
+      <string>GE-Survey System v2.16</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <layout class="QHBoxLayout" name="main_row_layout">
+     <item>
+      <layout class="QVBoxLayout" name="left_layout">
+       <item>
+        <widget class="QGroupBox" name="tie_group">
+         <property name="title">
+          <string>TiePoint:</string>
+         </property>
+         <layout class="QFormLayout" name="tie_form_layout">
+          <item row="0" column="0">
+           <widget class="QLabel" name="region_label">
+            <property name="text">
+             <string>Region:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="1">
+           <widget class="QComboBox" name="region_combo"/>
+          </item>
+          <item row="1" column="0">
+           <widget class="QLabel" name="province_label">
+            <property name="text">
+             <string>Province:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="1">
+           <widget class="QComboBox" name="province_combo"/>
+          </item>
+          <item row="2" column="0">
+           <widget class="QLabel" name="tp_id_label">
+            <property name="text">
+             <string>TP Id:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="1">
+           <widget class="QLineEdit" name="tp_id_edit">
+            <property name="readOnly">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="0">
+           <widget class="QLabel" name="latitude_label">
+            <property name="text">
+             <string>Latitude:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="1">
+           <widget class="QLineEdit" name="latitude_edit">
+            <property name="readOnly">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item row="4" column="0">
+           <widget class="QLabel" name="longitude_label">
+            <property name="text">
+             <string>Longitude:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="4" column="1">
+           <widget class="QLineEdit" name="longitude_edit">
+            <property name="readOnly">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <widget class="QGroupBox" name="projection_group">
+         <property name="title">
+          <string>Projection Type</string>
+         </property>
+         <layout class="QVBoxLayout" name="projection_layout">
+          <item>
+           <widget class="QRadioButton" name="lpcs_radio">
+            <property name="text">
+             <string>LPCS</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QRadioButton" name="ptm_radio">
+            <property name="text">
+             <string>Ptm</string>
+            </property>
+            <property name="checked">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QRadioButton" name="prs_radio">
+            <property name="text">
+             <string>pRs</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <layout class="QFormLayout" name="misc_form_layout">
+         <item row="0" column="0">
+          <widget class="QLabel" name="type_label">
+           <property name="text">
+            <string>Survey Type:</string>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="1">
+          <widget class="QLineEdit" name="type_edit"/>
+         </item>
+         <item row="1" column="0">
+          <widget class="QLabel" name="li_label">
+           <property name="text">
+            <string>LI / Reference Number:</string>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="1">
+          <widget class="QLineEdit" name="li_edit"/>
+         </item>
+         <item row="2" column="0">
+          <widget class="QLabel" name="date_label">
+           <property name="text">
+            <string>Date:</string>
+           </property>
+          </widget>
+         </item>
+         <item row="2" column="1">
+          <widget class="QLineEdit" name="date_edit"/>
+         </item>
+        </layout>
+       </item>
+       <item>
+        <spacer name="left_vertical_spacer">
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>20</width>
+           <height>40</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+      </layout>
+     </item>
+     <item>
+      <layout class="QVBoxLayout" name="right_layout">
+       <item>
+        <widget class="QGroupBox" name="lpcs_group">
+         <property name="title">
+          <string>LPCS:</string>
+         </property>
+         <layout class="QFormLayout" name="lpcs_form_layout">
+          <item row="0" column="0">
+           <widget class="QLabel" name="lpcs_north_label">
+            <property name="text">
+             <string>Northing:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="1">
+           <widget class="QLineEdit" name="lpcs_north_edit">
+            <property name="readOnly">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="0">
+           <widget class="QLabel" name="lpcs_east_label">
+            <property name="text">
+             <string>Easting:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="1">
+           <widget class="QLineEdit" name="lpcs_east_edit">
+            <property name="readOnly">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <widget class="QGroupBox" name="ptm_group">
+         <property name="title">
+          <string>PTM:</string>
+         </property>
+         <layout class="QFormLayout" name="ptm_form_layout">
+          <item row="0" column="0">
+           <widget class="QLabel" name="ptm_north_label">
+            <property name="text">
+             <string>Northing:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="1">
+           <widget class="QLineEdit" name="ptm_north_edit">
+            <property name="readOnly">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="0">
+           <widget class="QLabel" name="ptm_east_label">
+            <property name="text">
+             <string>Easting:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="1">
+           <widget class="QLineEdit" name="ptm_east_edit">
+            <property name="readOnly">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <widget class="QGroupBox" name="prs_group">
+         <property name="title">
+          <string>PRS:</string>
+         </property>
+         <layout class="QFormLayout" name="prs_form_layout">
+          <item row="0" column="0">
+           <widget class="QLabel" name="prs_north_label">
+            <property name="text">
+             <string>Northing:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="1">
+           <widget class="QLineEdit" name="prs_north_edit">
+            <property name="readOnly">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="0">
+           <widget class="QLabel" name="prs_east_label">
+            <property name="text">
+             <string>Easting:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="1">
+           <widget class="QLineEdit" name="prs_east_edit">
+            <property name="readOnly">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <spacer name="right_vertical_spacer">
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>20</width>
+           <height>40</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+      </layout>
+     </item>
+    </layout>
+   </item>
+   <item>
+    <widget class="QGroupBox" name="tp_descriptions_group">
+     <property name="title">
+      <string>TP Descriptions:</string>
+     </property>
+     <layout class="QVBoxLayout" name="tp_descriptions_layout">
+      <item>
+       <widget class="QComboBox" name="description_combo">
+        <property name="editable">
+         <bool>true</bool>
+        </property>
+        <property name="minimumContentsLength">
+         <number>70</number>
+        </property>
+        <property name="maxVisibleItems">
+         <number>18</number>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <widget class="QDialogButtonBox" name="button_box">
+     <property name="orientation">
+      <enum>Qt::Horizontal</enum>
+     </property>
+     <property name="standardButtons">
+      <set>QDialogButtonBox::Cancel|QDialogButtonBox::Ok</set>
+     </property>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <resources/>
+ <connections>
+  <connection>
+   <sender>button_box</sender>
+   <signal>accepted()</signal>
+   <receiver>TiePointChooserDialog</receiver>
+   <slot>accept()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>248</x>
+     <y>254</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>157</x>
+     <y>274</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>button_box</sender>
+   <signal>rejected()</signal>
+   <receiver>TiePointChooserDialog</receiver>
+   <slot>reject()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>316</x>
+     <y>260</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>286</x>
+     <y>274</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
+</ui>
