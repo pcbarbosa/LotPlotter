@@ -649,11 +649,22 @@ class LotPlotterDialog(QtWidgets.QDialog, FORM_CLASS):
         self.setMinimumSize(560, 420)
         self.setSizeGripEnabled(True)
 
-        for widget in (self.groupBox, self.output_group):
+        fixed_widgets = [self.groupBox]
+        if hasattr(self, 'output_group'):
+            fixed_widgets.append(self.output_group)
+        for widget in fixed_widgets:
             widget.setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Fixed)
 
-        for widget in (self.groupBox_2, self.sketch_group, self.groupBox_3, self.plot_results_splitter, self.results_text, self.table):
-            widget.setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
+        for widget_name in ('groupBox_2', 'sketch_group', 'groupBox_3', 'plot_results_splitter', 'results_text', 'table'):
+            if hasattr(self, widget_name):
+                getattr(self, widget_name).setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
+
+        if hasattr(self, 'main_content_splitter'):
+            self.main_content_splitter.setStretchFactor(0, 3)
+            self.main_content_splitter.setStretchFactor(1, 2)
+            self.main_content_splitter.setChildrenCollapsible(False)
+            self.main_content_splitter.setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
+            return
 
         table_index = self.verticalLayout.indexOf(self.groupBox_2)
         plot_index = self.verticalLayout.indexOf(self.plot_results_splitter)
@@ -730,9 +741,10 @@ class LotPlotterDialog(QtWidgets.QDialog, FORM_CLASS):
         claimant_form.addRow("Municipality / City:", self.municipality_combo)
         claimant_form.addRow("Barangay:", self.barangay_combo)
 
-        self.lot_details_btn = QtWidgets.QPushButton("Lot Details...")
+        if not hasattr(self, 'lot_details_btn'):
+            self.lot_details_btn = QtWidgets.QPushButton("Lot Details...")
+            self.horizontalLayout.insertWidget(4, self.lot_details_btn)
         self.lot_details_btn.clicked.connect(self.open_lot_details_dialog)
-        self.horizontalLayout.insertWidget(4, self.lot_details_btn)
 
         self.tie_details_group.hide()
         self.claimant_group.hide()
@@ -741,37 +753,38 @@ class LotPlotterDialog(QtWidgets.QDialog, FORM_CLASS):
         self.municipality_combo.currentIndexChanged.connect(self.on_detail_municipality_changed)
 
     def setup_output_controls(self):
-        self.output_group = QtWidgets.QGroupBox("Output Shapefile")
-        output_outer_layout = QtWidgets.QVBoxLayout(self.output_group)
-        output_help = QtWidgets.QLabel(
-            "Leave both blank for a temporary layer. Choose either a new shapefile path or an existing shapefile to append to."
-        )
-        output_help.setWordWrap(True)
-        output_help.setStyleSheet("color: #555;")
-        output_outer_layout.addWidget(output_help)
-        output_layout = QtWidgets.QFormLayout()
-        output_outer_layout.addLayout(output_layout)
+        if not hasattr(self, 'output_group'):
+            self.output_group = QtWidgets.QGroupBox("Output Shapefile")
+            output_outer_layout = QtWidgets.QVBoxLayout(self.output_group)
+            output_help = QtWidgets.QLabel(
+                "Leave both blank for a temporary layer. Choose either a new shapefile path or an existing shapefile to append to."
+            )
+            output_help.setWordWrap(True)
+            output_help.setStyleSheet("color: #555;")
+            output_outer_layout.addWidget(output_help)
+            output_layout = QtWidgets.QFormLayout()
+            output_outer_layout.addLayout(output_layout)
 
-        self.new_shapefile_input = QtWidgets.QLineEdit()
-        self.new_shapefile_input.setPlaceholderText("Blank = temporary memory layer")
-        self.new_shapefile_browse_btn = QtWidgets.QPushButton("Browse...")
-        new_row = QtWidgets.QHBoxLayout()
-        new_row.addWidget(self.new_shapefile_input)
-        new_row.addWidget(self.new_shapefile_browse_btn)
+            self.new_shapefile_input = QtWidgets.QLineEdit()
+            self.new_shapefile_input.setPlaceholderText("Blank = temporary memory layer")
+            self.new_shapefile_browse_btn = QtWidgets.QPushButton("Browse...")
+            new_row = QtWidgets.QHBoxLayout()
+            new_row.addWidget(self.new_shapefile_input)
+            new_row.addWidget(self.new_shapefile_browse_btn)
 
-        self.existing_shapefile_input = QtWidgets.QLineEdit()
-        self.existing_shapefile_input.setPlaceholderText("Optional existing .shp to append this lot")
-        self.existing_shapefile_browse_btn = QtWidgets.QPushButton("Browse...")
-        existing_row = QtWidgets.QHBoxLayout()
-        existing_row.addWidget(self.existing_shapefile_input)
-        existing_row.addWidget(self.existing_shapefile_browse_btn)
+            self.existing_shapefile_input = QtWidgets.QLineEdit()
+            self.existing_shapefile_input.setPlaceholderText("Optional existing .shp to append this lot")
+            self.existing_shapefile_browse_btn = QtWidgets.QPushButton("Browse...")
+            existing_row = QtWidgets.QHBoxLayout()
+            existing_row.addWidget(self.existing_shapefile_input)
+            existing_row.addWidget(self.existing_shapefile_browse_btn)
 
-        output_layout.addRow("Save new shapefile:", new_row)
-        output_layout.addRow("Add to existing shapefile:", existing_row)
+            output_layout.addRow("Save new shapefile:", new_row)
+            output_layout.addRow("Add to existing shapefile:", existing_row)
+            self.verticalLayout.insertWidget(1, self.output_group)
 
         self.new_shapefile_browse_btn.clicked.connect(self.browse_new_shapefile)
         self.existing_shapefile_browse_btn.clicked.connect(self.browse_existing_shapefile)
-        self.verticalLayout.insertWidget(1, self.output_group)
 
     def browse_new_shapefile(self):
         file_path, _ = QFileDialog.getSaveFileName(self, "Save Lot Shapefile", "", "Shapefiles (*.shp)")
@@ -791,17 +804,18 @@ class LotPlotterDialog(QtWidgets.QDialog, FORM_CLASS):
         return file_path
 
     def setup_table_paste_controls(self):
-        self.table_format_guide = QtWidgets.QLabel(
-            "Format guide: first row is the tie line (TP-1). Enter bearings as azimuths "
-            "(45, 135.5) or quadrant bearings (N 45 30 E, S 12 15 W), then distance in meters. "
-            "Example rows: TP-1 | N 45 00 E | 25.00; 1-2 | S 80 30 E | 42.75."
-        )
-        self.table_format_guide.setWordWrap(True)
-        self.table_format_guide.setStyleSheet("color: #555;")
-        try:
-            self.verticalLayout_2.insertWidget(0, self.table_format_guide)
-        except Exception:
-            pass
+        if not hasattr(self, 'table_format_guide'):
+            self.table_format_guide = QtWidgets.QLabel(
+                "Format guide: first row is the tie line (TP-1). Enter bearings as azimuths "
+                "(45, 135.5) or quadrant bearings (N 45 30 E, S 12 15 W), then distance in meters. "
+                "Example rows: TP-1 | N 45 00 E | 25.00; 1-2 | S 80 30 E | 42.75."
+            )
+            self.table_format_guide.setWordWrap(True)
+            self.table_format_guide.setStyleSheet("color: #555;")
+            try:
+                self.verticalLayout_2.insertWidget(0, self.table_format_guide)
+            except Exception:
+                pass
 
         self.table.blockSignals(True)
         self.table.setColumnCount(3)
@@ -817,41 +831,53 @@ class LotPlotterDialog(QtWidgets.QDialog, FORM_CLASS):
         self.table.itemChanged.connect(self.on_table_item_changed)
         self.start_x_input.textChanged.connect(self.update_live_sketch)
         self.start_y_input.textChanged.connect(self.update_live_sketch)
-        self.corner_count_label = QtWidgets.QLabel("Corners:")
-        self.corner_count_spin = QtWidgets.QSpinBox()
+        if not hasattr(self, 'corner_count_label'):
+            self.corner_count_label = QtWidgets.QLabel("Corners:")
+        if not hasattr(self, 'corner_count_spin'):
+            self.corner_count_spin = QtWidgets.QSpinBox()
         self.corner_count_spin.setMinimum(3)
         self.corner_count_spin.setMaximum(500)
         self.corner_count_spin.setValue(max(self.table.rowCount(), 4))
         self.corner_count_spin.valueChanged.connect(self.set_corner_count)
-        self.paste_rows_btn = QtWidgets.QPushButton("Paste Rows")
+        if not hasattr(self, 'paste_rows_btn'):
+            self.paste_rows_btn = QtWidgets.QPushButton("Paste Rows")
         self.paste_rows_btn.clicked.connect(self.paste_rows_from_clipboard)
-        try:
-            self.horizontalLayout_2.insertWidget(0, self.corner_count_label)
-            self.horizontalLayout_2.insertWidget(1, self.corner_count_spin)
-            self.horizontalLayout_2.insertWidget(2, self.paste_rows_btn)
-        except Exception:
-            layout = self.add_corner_btn.parentWidget().layout()
-            layout.insertWidget(0, self.corner_count_label)
-            layout.insertWidget(1, self.corner_count_spin)
-            layout.insertWidget(2, self.paste_rows_btn)
+        if self.horizontalLayout_2.indexOf(self.corner_count_spin) < 0:
+            try:
+                self.horizontalLayout_2.insertWidget(0, self.corner_count_label)
+                self.horizontalLayout_2.insertWidget(1, self.corner_count_spin)
+                self.horizontalLayout_2.insertWidget(2, self.paste_rows_btn)
+            except Exception:
+                layout = self.add_corner_btn.parentWidget().layout()
+                layout.insertWidget(0, self.corner_count_label)
+                layout.insertWidget(1, self.corner_count_spin)
+                layout.insertWidget(2, self.paste_rows_btn)
 
     def setup_sketch_preview(self):
-        self.sketch_group = QtWidgets.QGroupBox("Live Sketch")
-        sketch_layout = QtWidgets.QVBoxLayout(self.sketch_group)
-        self.sketch_scene = QtWidgets.QGraphicsScene(self)
-        self.sketch_view = QtWidgets.QGraphicsView(self.sketch_scene)
-        self.sketch_view.setMinimumHeight(120)
-        sketch_layout.addWidget(self.sketch_view)
-
-        result_index = self.verticalLayout.indexOf(self.groupBox_3) if hasattr(self, 'groupBox_3') else -1
-        self.plot_results_splitter = QtWidgets.QSplitter(Qt.Horizontal)
-        self.plot_results_splitter.addWidget(self.sketch_group)
-        if result_index >= 0:
-            self.verticalLayout.removeWidget(self.groupBox_3)
-            self.plot_results_splitter.addWidget(self.groupBox_3)
-            self.verticalLayout.insertWidget(result_index, self.plot_results_splitter)
+        if not hasattr(self, 'sketch_group'):
+            self.sketch_group = QtWidgets.QGroupBox("Live Sketch")
+            sketch_layout = QtWidgets.QVBoxLayout(self.sketch_group)
         else:
-            self.verticalLayout.insertWidget(4, self.plot_results_splitter)
+            sketch_layout = self.sketch_group.layout() or QtWidgets.QVBoxLayout(self.sketch_group)
+        self.sketch_scene = QtWidgets.QGraphicsScene(self)
+        if not hasattr(self, 'sketch_view'):
+            self.sketch_view = QtWidgets.QGraphicsView()
+            sketch_layout.addWidget(self.sketch_view)
+        self.sketch_view.setScene(self.sketch_scene)
+        self.sketch_view.setMinimumHeight(120)
+        if sketch_layout.indexOf(self.sketch_view) < 0:
+            sketch_layout.addWidget(self.sketch_view)
+
+        if not hasattr(self, 'plot_results_splitter'):
+            result_index = self.verticalLayout.indexOf(self.groupBox_3) if hasattr(self, 'groupBox_3') else -1
+            self.plot_results_splitter = QtWidgets.QSplitter(Qt.Horizontal)
+            self.plot_results_splitter.addWidget(self.sketch_group)
+            if result_index >= 0:
+                self.verticalLayout.removeWidget(self.groupBox_3)
+                self.plot_results_splitter.addWidget(self.groupBox_3)
+                self.verticalLayout.insertWidget(result_index, self.plot_results_splitter)
+            else:
+                self.verticalLayout.insertWidget(4, self.plot_results_splitter)
         self.plot_results_splitter.setStretchFactor(0, 1)
         self.plot_results_splitter.setStretchFactor(1, 1)
         self.plot_results_splitter.setChildrenCollapsible(False)
