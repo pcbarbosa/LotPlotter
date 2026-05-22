@@ -623,6 +623,7 @@ class LotPlotterDialog(QtWidgets.QDialog, FORM_CLASS):
         self.setup_output_controls()
         self.setup_table_paste_controls()
         self.setup_sketch_preview()
+        self.setup_resizable_layout()
         self.disable_enter_key_default_buttons()
         
         # Connect buttons
@@ -643,6 +644,34 @@ class LotPlotterDialog(QtWidgets.QDialog, FORM_CLASS):
         for button in self.findChildren(QtWidgets.QPushButton):
             button.setDefault(False)
             button.setAutoDefault(False)
+
+    def setup_resizable_layout(self):
+        self.setMinimumSize(560, 420)
+        self.setSizeGripEnabled(True)
+
+        for widget in (self.groupBox, self.output_group):
+            widget.setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Fixed)
+
+        for widget in (self.groupBox_2, self.sketch_group, self.groupBox_3, self.plot_results_splitter, self.results_text, self.table):
+            widget.setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
+
+        table_index = self.verticalLayout.indexOf(self.groupBox_2)
+        plot_index = self.verticalLayout.indexOf(self.plot_results_splitter)
+        if table_index < 0 or plot_index < 0:
+            return
+
+        insert_index = min(table_index, plot_index)
+        self.verticalLayout.removeWidget(self.groupBox_2)
+        self.verticalLayout.removeWidget(self.plot_results_splitter)
+
+        self.main_content_splitter = QtWidgets.QSplitter(Qt.Vertical)
+        self.main_content_splitter.addWidget(self.groupBox_2)
+        self.main_content_splitter.addWidget(self.plot_results_splitter)
+        self.main_content_splitter.setStretchFactor(0, 3)
+        self.main_content_splitter.setStretchFactor(1, 2)
+        self.main_content_splitter.setChildrenCollapsible(False)
+        self.main_content_splitter.setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
+        self.verticalLayout.insertWidget(insert_index, self.main_content_splitter, 1)
 
     def setup_project_detail_sections(self):
         if hasattr(self, 'groupBox_tie_point'):
@@ -780,7 +809,7 @@ class LotPlotterDialog(QtWidgets.QDialog, FORM_CLASS):
         self.table.horizontalHeader().setSectionResizeMode(0, QtWidgets.QHeaderView.ResizeToContents)
         self.table.horizontalHeader().setSectionResizeMode(1, QtWidgets.QHeaderView.Stretch)
         self.table.horizontalHeader().setSectionResizeMode(2, QtWidgets.QHeaderView.Stretch)
-        self.table.setMinimumHeight(300)
+        self.table.setMinimumHeight(120)
         self.table.blockSignals(False)
         self.table.installEventFilter(self)
         self.table.setSelectionMode(QtWidgets.QAbstractItemView.ExtendedSelection)
@@ -811,22 +840,23 @@ class LotPlotterDialog(QtWidgets.QDialog, FORM_CLASS):
         sketch_layout = QtWidgets.QVBoxLayout(self.sketch_group)
         self.sketch_scene = QtWidgets.QGraphicsScene(self)
         self.sketch_view = QtWidgets.QGraphicsView(self.sketch_scene)
-        self.sketch_view.setMinimumHeight(220)
+        self.sketch_view.setMinimumHeight(120)
         sketch_layout.addWidget(self.sketch_view)
 
         result_index = self.verticalLayout.indexOf(self.groupBox_3) if hasattr(self, 'groupBox_3') else -1
-        self.plot_results_row = QtWidgets.QWidget()
-        plot_results_layout = QtWidgets.QHBoxLayout(self.plot_results_row)
-        plot_results_layout.setContentsMargins(0, 0, 0, 0)
-        plot_results_layout.addWidget(self.sketch_group, 1)
+        self.plot_results_splitter = QtWidgets.QSplitter(Qt.Horizontal)
+        self.plot_results_splitter.addWidget(self.sketch_group)
         if result_index >= 0:
             self.verticalLayout.removeWidget(self.groupBox_3)
-            plot_results_layout.addWidget(self.groupBox_3, 1)
-            self.verticalLayout.insertWidget(result_index, self.plot_results_row)
+            self.plot_results_splitter.addWidget(self.groupBox_3)
+            self.verticalLayout.insertWidget(result_index, self.plot_results_splitter)
         else:
-            self.verticalLayout.insertWidget(4, self.plot_results_row)
+            self.verticalLayout.insertWidget(4, self.plot_results_splitter)
+        self.plot_results_splitter.setStretchFactor(0, 1)
+        self.plot_results_splitter.setStretchFactor(1, 1)
+        self.plot_results_splitter.setChildrenCollapsible(False)
 
-        self.results_text.setMinimumHeight(220)
+        self.results_text.setMinimumHeight(120)
         self.update_live_sketch()
 
     def closeEvent(self, event):
