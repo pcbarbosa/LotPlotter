@@ -3,6 +3,7 @@ import json
 import os
 import math
 import re
+import sqlite3
 from qgis.PyQt import QtWidgets, uic
 from qgis.PyQt.QtWidgets import QFileDialog
 from qgis.PyQt.QtCore import QEvent, QSettings, Qt, QVariant
@@ -12,6 +13,7 @@ from qgis.gui import QgisInterface
 
 PLUGIN_DIR = os.path.dirname(__file__)
 LOOKUP_DIR = os.path.join(PLUGIN_DIR, 'LookUpData')
+LOOKUP_DB = os.path.join(LOOKUP_DIR, 'lookup.sqlite')
 SETTINGS_KEY = 'LotPlotter/last_state'
 TIE_POINT_DIALOG_UI = os.path.join(PLUGIN_DIR, 'tie_point_chooser_dialog.ui')
 LOT_DETAILS_DIALOG_UI = os.path.join(PLUGIN_DIR, 'lot_details_dialog.ui')
@@ -188,7 +190,28 @@ def parse_float(value):
         return None
 
 
+def lookup_db_exists():
+    return os.path.exists(LOOKUP_DB)
+
+
+def lookup_db_rows(query, params=()):
+    if not lookup_db_exists():
+        return []
+    try:
+        with sqlite3.connect(LOOKUP_DB) as connection:
+            connection.row_factory = sqlite3.Row
+            return [dict(row) for row in connection.execute(query, params)]
+    except sqlite3.Error:
+        return []
+
+
 def read_dollar_lookup_rows(prefix):
+    table = 'municipalities' if prefix.lower().startswith('mun') else 'barangays' if prefix.lower().startswith('bgy') else ''
+    if table:
+        rows = lookup_db_rows(f"SELECT code, name FROM {table} ORDER BY code")
+        if rows:
+            return rows
+
     rows = []
     for extension in ('Txt', 'Dta', 'csv'):
         for name in os.listdir(LOOKUP_DIR):
@@ -221,6 +244,14 @@ def load_barangays_for_municipality(municipality_code):
 
 
 def load_simple_lookup_values(file_name, fallback):
+    category = os.path.splitext(file_name)[0]
+    rows = lookup_db_rows(
+        "SELECT value FROM simple_values WHERE category = ? ORDER BY sort_order",
+        (category,),
+    )
+    if rows:
+        return [row['value'] for row in rows]
+
     path = os.path.join(LOOKUP_DIR, file_name)
     values = []
     if os.path.exists(path):
@@ -337,6 +368,10 @@ def crs_for_tie_point(values):
 
 
 def load_provinces():
+    rows = lookup_db_rows("SELECT code, name FROM provinces ORDER BY code")
+    if rows:
+        return rows
+
     path = os.path.join(LOOKUP_DIR, 'PrvDta.csv')
     provinces = []
     if not os.path.exists(path):
@@ -361,6 +396,10 @@ def read_dollar_rows(path):
 
 
 def load_regions():
+    rows = lookup_db_rows("SELECT code, short, name, display FROM regions ORDER BY code")
+    if rows:
+        return rows
+
     regions = []
     for parts in read_dollar_rows(os.path.join(LOOKUP_DIR, 'RegDta0000.Dta')):
         code = parts[0]
@@ -371,6 +410,20 @@ def load_regions():
 
 
 def load_tie_points_for_province(province_code):
+    rows = lookup_db_rows(
+        """
+        SELECT id, description, display, point_name, marker, survey, municipality,
+               province, region, latitude, longitude, lpcs_n, lpcs_e, prs_n, prs_e,
+               ptm_n, ptm_e
+        FROM tie_points
+        WHERE province_code = ?
+        ORDER BY row_order
+        """,
+        (str(province_code),),
+    )
+    if rows:
+        return rows
+
     path = os.path.join(LOOKUP_DIR, f"{province_code}.csv")
     points = []
     if not os.path.exists(path):

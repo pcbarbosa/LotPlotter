@@ -66,6 +66,12 @@ A QGIS plugin for plotting lot boundaries based on bearing and distance measurem
 
 The plugin creates the lot layer using the current QGIS project CRS unless a selected tie point defines the coordinate source. PTM tie points assign Luzon 1911 / Philippines Zone I-V, and PRS tie points assign PRS92 / Philippines Zone I-V, based on the selected province. LPCS tie points create an unknown-CRS layer because those coordinates are local/floating and should not be treated as georeferenced EPSG coordinates.
 
+## Lookup Data
+
+The plugin uses a compiled `LookUpData/lookup.sqlite` database for province, municipality, barangay, survey type, island group, and tie point lookup values. The database can be rebuilt from the lookup source files with `python tools\compile_lookupdata.py`.
+
+Before publishing a public plugin package, verify that the included lookup data is licensed for redistribution.
+
 ## Closure Error Interpretation
 
 - **0.00 units** = Perfect closure (rare in practice)
