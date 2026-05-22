@@ -1740,7 +1740,7 @@ class LotPlotter:
         """Initialize the GUI"""
         from qgis.PyQt.QtGui import QIcon
         
-        icon_path = os.path.join(os.path.dirname(__file__), 'icon.svg')
+        icon_path = os.path.join(os.path.dirname(__file__), 'icon.png')
         icon = QIcon(icon_path) if os.path.exists(icon_path) else QIcon()
         
         self.action = QtWidgets.QAction(icon, 'Lot Plotter', self.iface.mainWindow())

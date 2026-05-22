@@ -2,6 +2,11 @@
 
 A QGIS plugin for plotting lot boundaries based on bearing and distance measurements, similar to the CAD PLOTTING TEMPLATE.xls spreadsheet.
 
+Author: Patrick Barbosa  
+Project: The Atlas Project
+
+Repository: https://github.com/pcbarbosa/LotPlotter.git
+
 ## Features
 
 - **Input bearings and distances** for each corner of a lot

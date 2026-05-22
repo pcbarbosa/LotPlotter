@@ -1,18 +1,20 @@
 [general]
 name=Lot Plotter
 qgisMinimumVersion=3.0
-description=Plot lot boundaries from bearing and distance measurements
+description=Plot lot boundaries from bearing and distance measurements. A tool under The Atlas Project.
+about=Lot Plotter is a cadastral plotting tool under The Atlas Project. It creates lot boundary polygons from bearing and distance entries, supports tie point lookup data, computes area and closure, and can create temporary layers or write lots to shapefiles.
 version=1.0
-author=Patrick
+author=Patrick Barbosa
 email=
 url=
 changelog=Initial release - creates polygon lots from bearing/distance inputs
 
-tags=cadastral,surveying,lot,plotting
+tags=cadastral,surveying,lot,plotting,atlas
+category=Vector
 
-homepage=
-tracker=
-repository=
-icon=icon.svg
+homepage=https://github.com/pcbarbosa/LotPlotter
+tracker=https://github.com/pcbarbosa/LotPlotter/issues
+repository=https://github.com/pcbarbosa/LotPlotter.git
+icon=icon.png
 experimental=False
 deprecated=False
