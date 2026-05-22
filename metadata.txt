@@ -5,8 +5,9 @@ description=Plot lot boundaries from bearing and distance measurements. A tool u
 about=Lot Plotter is a cadastral plotting tool under The Atlas Project. It creates lot boundary polygons from bearing and distance entries, supports tie point lookup data, computes area and closure, and can create temporary layers or write lots to shapefiles.
 version=1.0
 author=Patrick Barbosa
-email=
+email=patrickbarbosa5047@gmail.com
 url=
+license=GPL-2.0-or-later
 changelog=Initial release - creates polygon lots from bearing/distance inputs
 
 tags=cadastral,surveying,lot,plotting,atlas

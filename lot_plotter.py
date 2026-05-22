@@ -13,6 +13,8 @@ from qgis.gui import QgisInterface
 PLUGIN_DIR = os.path.dirname(__file__)
 LOOKUP_DIR = os.path.join(PLUGIN_DIR, 'LookUpData')
 SETTINGS_KEY = 'LotPlotter/last_state'
+TIE_POINT_DIALOG_UI = os.path.join(PLUGIN_DIR, 'tie_point_chooser_dialog.ui')
+LOT_DETAILS_DIALOG_UI = os.path.join(PLUGIN_DIR, 'lot_details_dialog.ui')
 SURVEY_TYPES = [
     'CADASTRAL',
     'SUBDIVISION',
@@ -425,6 +427,11 @@ class TiePointChooserDialog(QtWidgets.QDialog):
         self.provinces = load_provinces()
         self.tie_points = []
 
+        if os.path.exists(TIE_POINT_DIALOG_UI):
+            uic.loadUi(TIE_POINT_DIALOG_UI, self)
+            self.setup_loaded_ui()
+            return
+
         layout = QtWidgets.QVBoxLayout(self)
         layout.addWidget(QtWidgets.QLabel("GE-Survey System v2.16"))
 
@@ -526,6 +533,39 @@ class TiePointChooserDialog(QtWidgets.QDialog):
         self.prs_radio.toggled.connect(self.apply_projection_to_primary)
         self.lpcs_radio.toggled.connect(self.apply_projection_to_primary)
 
+        self.populate_regions()
+
+    def setup_loaded_ui(self):
+        self.description_combo.setEditable(True)
+        self.description_combo.setMinimumContentsLength(70)
+        self.description_combo.setSizeAdjustPolicy(QtWidgets.QComboBox.AdjustToMinimumContentsLengthWithIcon)
+        self.description_combo.setMaxVisibleItems(18)
+        self.description_combo.setFont(QFont("Consolas", 9))
+        self.description_combo.view().setFont(QFont("Consolas", 9))
+        self.description_combo.view().setVerticalScrollBarPolicy(Qt.ScrollBarAsNeeded)
+        for edit in (
+            self.tp_id_edit,
+            self.latitude_edit,
+            self.longitude_edit,
+            self.lpcs_north_edit,
+            self.lpcs_east_edit,
+            self.ptm_north_edit,
+            self.ptm_east_edit,
+            self.prs_north_edit,
+            self.prs_east_edit,
+        ):
+            edit.setReadOnly(True)
+
+        self.region_combo.currentIndexChanged.connect(self.populate_provinces)
+        self.province_combo.currentIndexChanged.connect(self.populate_tie_points)
+        self.description_combo.currentIndexChanged.connect(self.apply_selected_tie_point)
+        self.ptm_radio.toggled.connect(self.apply_projection_to_primary)
+        self.prs_radio.toggled.connect(self.apply_projection_to_primary)
+        self.lpcs_radio.toggled.connect(self.apply_projection_to_primary)
+
+        if hasattr(self, 'button_box'):
+            self.button_box.accepted.connect(self.accept)
+            self.button_box.rejected.connect(self.reject)
         self.populate_regions()
 
     def populate_regions(self):
@@ -806,9 +846,8 @@ class LotPlotterDialog(QtWidgets.QDialog, FORM_CLASS):
     def setup_table_paste_controls(self):
         if not hasattr(self, 'table_format_guide'):
             self.table_format_guide = QtWidgets.QLabel(
-                "Format guide: first row is the tie line (TP-1). Enter bearings as azimuths "
-                "(45, 135.5) or quadrant bearings (N 45 30 E, S 12 15 W), then distance in meters. "
-                "Example rows: TP-1 | N 45 00 E | 25.00; 1-2 | S 80 30 E | 42.75."
+                "Format: Enter bearings as (e.g., N06D07E, S06D07W), "
+                "then distance in meters (e.g., 6.7)."
             )
             self.table_format_guide.setWordWrap(True)
             self.table_format_guide.setStyleSheet("color: #555;")
@@ -1344,30 +1383,60 @@ class LotPlotterDialog(QtWidgets.QDialog, FORM_CLASS):
 
     def open_lot_details_dialog(self):
         dialog = QtWidgets.QDialog(self)
-        dialog.setWindowTitle("Lot / Claimant Details")
-        dialog.resize(520, 520)
-        layout = QtWidgets.QVBoxLayout(dialog)
-        form = QtWidgets.QFormLayout()
-        layout.addLayout(form)
+        designer_ui = os.path.exists(LOT_DETAILS_DIALOG_UI)
+        if designer_ui:
+            uic.loadUi(LOT_DETAILS_DIALOG_UI, dialog)
+            lot_id = dialog.lot_id
+            lot_name = dialog.lot_name
+            ge_name = dialog.ge_name
+            survey_number = dialog.survey_number
+            survey_date = dialog.survey_date
+            type_combo = dialog.type_combo
+            claimant = dialog.claimant
+            island_combo = dialog.island_combo
+            province_combo = dialog.province_combo
+            municipality_combo = dialog.municipality_combo
+            barangay_combo = dialog.barangay_combo
+            lot_id.setReadOnly(True)
+            type_combo.clear()
+            type_combo.addItems([self.type_combo.itemText(index) for index in range(self.type_combo.count())])
+            island_combo.clear()
+            island_combo.addItems([self.island_combo.itemText(index) for index in range(self.island_combo.count())])
+        else:
+            dialog.setWindowTitle("Lot / Claimant Details")
+            dialog.resize(520, 520)
+            layout = QtWidgets.QVBoxLayout(dialog)
+            form = QtWidgets.QFormLayout()
+            layout.addLayout(form)
 
-        lot_id = QtWidgets.QLineEdit(self.lot_id_input.text())
-        lot_id.setReadOnly(True)
-        lot_name = QtWidgets.QLineEdit(self.lot_name_input.text())
-        ge_name = QtWidgets.QLineEdit(self.ge_name_input.text())
-        survey_number = QtWidgets.QLineEdit(self.survey_number_input.text())
-        survey_date = QtWidgets.QLineEdit(self.survey_date_input.text())
-        type_combo = self.clone_combo(self.type_combo)
-        claimant = QtWidgets.QLineEdit(self.claimant_input.text())
-        island_combo = self.clone_combo(self.island_combo)
-        province_combo = QtWidgets.QComboBox()
-        province_combo.setEditable(True)
+            lot_id = QtWidgets.QLineEdit()
+            lot_id.setReadOnly(True)
+            lot_name = QtWidgets.QLineEdit()
+            ge_name = QtWidgets.QLineEdit()
+            survey_number = QtWidgets.QLineEdit()
+            survey_date = QtWidgets.QLineEdit()
+            type_combo = self.clone_combo(self.type_combo)
+            claimant = QtWidgets.QLineEdit()
+            island_combo = self.clone_combo(self.island_combo)
+            province_combo = QtWidgets.QComboBox()
+            province_combo.setEditable(True)
+            municipality_combo = QtWidgets.QComboBox()
+            municipality_combo.setEditable(True)
+            barangay_combo = QtWidgets.QComboBox()
+            barangay_combo.setEditable(True)
+
+        lot_id.setText(self.lot_id_input.text())
+        lot_name.setText(self.lot_name_input.text())
+        ge_name.setText(self.ge_name_input.text())
+        survey_number.setText(self.survey_number_input.text())
+        survey_date.setText(self.survey_date_input.text())
+        type_combo.setCurrentText(self.type_combo.currentText())
+        claimant.setText(self.claimant_input.text())
+        island_combo.setCurrentText(self.island_combo.currentText())
+        province_combo.clear()
         for province in self.lookup_provinces:
             province_combo.addItem(province['name'], province)
         province_combo.setCurrentText(self.province_detail_combo.currentText())
-        municipality_combo = QtWidgets.QComboBox()
-        municipality_combo.setEditable(True)
-        barangay_combo = QtWidgets.QComboBox()
-        barangay_combo.setEditable(True)
 
         def populate_municipalities():
             province = province_combo.currentData() or {}
@@ -1395,22 +1464,27 @@ class LotPlotterDialog(QtWidgets.QDialog, FORM_CLASS):
         municipality_combo.currentIndexChanged.connect(populate_barangays)
         populate_municipalities()
 
-        form.addRow("Lot ID:", lot_id)
-        form.addRow("Lot Name / Number:", lot_name)
-        form.addRow("GE / Surveyor Name:", ge_name)
-        form.addRow("Survey Number:", survey_number)
-        form.addRow("Survey Date:", survey_date)
-        form.addRow("Type:", type_combo)
-        form.addRow("Claimant:", claimant)
-        form.addRow("Island:", island_combo)
-        form.addRow("Province:", province_combo)
-        form.addRow("Municipality / City:", municipality_combo)
-        form.addRow("Barangay:", barangay_combo)
+        if not designer_ui:
+            form.addRow("Lot ID:", lot_id)
+            form.addRow("Lot Name / Number:", lot_name)
+            form.addRow("GE / Surveyor Name:", ge_name)
+            form.addRow("Survey Number:", survey_number)
+            form.addRow("Survey Date:", survey_date)
+            form.addRow("Type:", type_combo)
+            form.addRow("Claimant:", claimant)
+            form.addRow("Island:", island_combo)
+            form.addRow("Province:", province_combo)
+            form.addRow("Municipality / City:", municipality_combo)
+            form.addRow("Barangay:", barangay_combo)
 
-        buttons = QtWidgets.QDialogButtonBox(QtWidgets.QDialogButtonBox.Ok | QtWidgets.QDialogButtonBox.Cancel)
-        buttons.accepted.connect(dialog.accept)
-        buttons.rejected.connect(dialog.reject)
-        layout.addWidget(buttons)
+            buttons = QtWidgets.QDialogButtonBox(QtWidgets.QDialogButtonBox.Ok | QtWidgets.QDialogButtonBox.Cancel)
+            buttons.accepted.connect(dialog.accept)
+            buttons.rejected.connect(dialog.reject)
+            layout.addWidget(buttons)
+        elif hasattr(dialog, 'button_box'):
+            dialog.button_box.accepted.connect(dialog.accept)
+            dialog.button_box.rejected.connect(dialog.reject)
+
         if dialog.exec_() == QtWidgets.QDialog.Accepted:
             self.lot_name_input.setText(lot_name.text())
             self.ge_name_input.setText(ge_name.text())
@@ -1452,7 +1526,7 @@ class LotPlotterDialog(QtWidgets.QDialog, FORM_CLASS):
             except ValueError:
                 QtWidgets.QMessageBox.warning(self, "Input Error", 
                     f"Row {row + 1}: Invalid bearing or distance value.\n\n"
-                    "Bearing can be an azimuth like 45 or a quadrant bearing like N 45 30 E.")
+                    "Bearing can be an azimuth like 45 or a quadrant bearing like N45D30E.")
                 return None
         return corners
     

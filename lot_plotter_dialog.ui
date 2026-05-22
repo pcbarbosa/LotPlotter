@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>900</width>
-    <height>760</height>
+    <width>560</width>
+    <height>536</height>
    </rect>
   </property>
   <property name="minimumSize">
@@ -34,63 +34,50 @@
      <property name="title">
       <string>Starting Point</string>
      </property>
-     <layout class="QHBoxLayout" name="horizontalLayout">
-      <item>
-       <widget class="QLabel" name="label">
-        <property name="text">
-         <string>X Coordinate:</string>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QLineEdit" name="start_x_input">
-        <property name="text">
-         <string>0</string>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QLabel" name="label_2">
-        <property name="text">
-         <string>Y Coordinate:</string>
-        </property>
-       </widget>
-      </item>
-      <item>
+     <layout class="QGridLayout" name="gridLayout">
+      <item row="0" column="4">
        <widget class="QLineEdit" name="start_y_input">
         <property name="text">
          <string>0</string>
         </property>
        </widget>
       </item>
-      <item>
+      <item row="0" column="2">
+       <widget class="QLineEdit" name="start_x_input">
+        <property name="text">
+         <string>0</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="3">
+       <widget class="QLabel" name="label_2">
+        <property name="text">
+         <string>Y Coordinate:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="1">
+       <widget class="QLabel" name="label">
+        <property name="text">
+         <string>X Coordinate:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="0">
        <widget class="QPushButton" name="choose_tie_btn">
         <property name="text">
          <string>Choose Tie-Point...</string>
         </property>
        </widget>
       </item>
-      <item>
-       <widget class="QPushButton" name="lot_details_btn">
-        <property name="text">
-         <string>Lot Details...</string>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <spacer name="horizontalSpacer">
-        <property name="orientation">
-         <enum>Qt::Horizontal</enum>
-        </property>
-        <property name="sizeHint" stdset="0">
-         <size>
-          <width>40</width>
-          <height>20</height>
-         </size>
-        </property>
-       </spacer>
-      </item>
      </layout>
+    </widget>
+   </item>
+   <item>
+    <widget class="QPushButton" name="lot_details_btn">
+     <property name="text">
+      <string>Lot Details</string>
+     </property>
     </widget>
    </item>
    <item>
@@ -105,19 +92,6 @@
       <string>Output Shapefile</string>
      </property>
      <layout class="QVBoxLayout" name="output_outer_layout">
-      <item>
-       <widget class="QLabel" name="output_help_label">
-        <property name="styleSheet">
-         <string notr="true">color: #555;</string>
-        </property>
-        <property name="text">
-         <string>Leave both blank for a temporary layer. Choose either a new shapefile path or an existing shapefile to append to.</string>
-        </property>
-        <property name="wordWrap">
-         <bool>true</bool>
-        </property>
-       </widget>
-      </item>
       <item>
        <layout class="QFormLayout" name="output_form_layout">
         <item row="0" column="0">
@@ -191,7 +165,7 @@
           <string notr="true">color: #555;</string>
          </property>
          <property name="text">
-          <string>Format guide: first row is the tie line (TP-1). Enter bearings as azimuths (45, 135.5) or quadrant bearings (N 45 30 E, S 12 15 W), then distance in meters. Example rows: TP-1 | N 45 00 E | 25.00; 1-2 | S 80 30 E | 42.75.</string>
+          <string>Format: Enter bearings as (e.g., N06D07E, S06D07W), then distance in meters (e.g., 6.7)</string>
          </property>
          <property name="wordWrap">
           <bool>true</bool>
@@ -248,13 +222,6 @@
            </property>
            <property name="value">
             <number>4</number>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QPushButton" name="paste_rows_btn">
-           <property name="text">
-            <string>Paste Rows</string>
            </property>
           </widget>
          </item>
@@ -339,20 +306,6 @@
    <item>
     <layout class="QHBoxLayout" name="horizontalLayout_3">
      <item>
-      <widget class="QPushButton" name="plot_btn">
-       <property name="text">
-        <string>Plot Lot</string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QPushButton" name="export_btn">
-       <property name="text">
-        <string>Export Coordinates</string>
-       </property>
-      </widget>
-     </item>
-     <item>
       <widget class="QPushButton" name="clear_btn">
        <property name="text">
         <string>Clear</string>
@@ -371,6 +324,20 @@
         </size>
        </property>
       </spacer>
+     </item>
+     <item>
+      <widget class="QPushButton" name="export_btn">
+       <property name="text">
+        <string>Export Coordinates</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="plot_btn">
+       <property name="text">
+        <string>Plot Lot</string>
+       </property>
+      </widget>
      </item>
     </layout>
    </item>
