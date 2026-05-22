@@ -7,7 +7,7 @@ from qgis.PyQt import QtWidgets, uic
 from qgis.PyQt.QtWidgets import QFileDialog
 from qgis.PyQt.QtCore import QEvent, QSettings, Qt, QVariant
 from qgis.PyQt.QtGui import QBrush, QColor, QFont, QKeySequence, QPen
-from qgis.core import QgsProject, QgsVectorLayer, QgsFeature, QgsGeometry, QgsPointXY, QgsField
+from qgis.core import QgsProject, QgsVectorLayer, QgsFeature, QgsGeometry, QgsPointXY, QgsField, QgsVectorFileWriter
 from qgis.gui import QgisInterface
 
 PLUGIN_DIR = os.path.dirname(__file__)
@@ -620,6 +620,7 @@ class LotPlotterDialog(QtWidgets.QDialog, FORM_CLASS):
         self.current_lot_id = self.generate_lot_id()
         self._loading_settings = False
         self.setup_project_detail_sections()
+        self.setup_output_controls()
         self.setup_table_paste_controls()
         self.setup_sketch_preview()
         self.disable_enter_key_default_buttons()
@@ -709,6 +710,56 @@ class LotPlotterDialog(QtWidgets.QDialog, FORM_CLASS):
 
         self.province_detail_combo.currentIndexChanged.connect(self.on_detail_province_changed)
         self.municipality_combo.currentIndexChanged.connect(self.on_detail_municipality_changed)
+
+    def setup_output_controls(self):
+        self.output_group = QtWidgets.QGroupBox("Output Shapefile")
+        output_outer_layout = QtWidgets.QVBoxLayout(self.output_group)
+        output_help = QtWidgets.QLabel(
+            "Leave both blank for a temporary layer. Choose either a new shapefile path or an existing shapefile to append to."
+        )
+        output_help.setWordWrap(True)
+        output_help.setStyleSheet("color: #555;")
+        output_outer_layout.addWidget(output_help)
+        output_layout = QtWidgets.QFormLayout()
+        output_outer_layout.addLayout(output_layout)
+
+        self.new_shapefile_input = QtWidgets.QLineEdit()
+        self.new_shapefile_input.setPlaceholderText("Blank = temporary memory layer")
+        self.new_shapefile_browse_btn = QtWidgets.QPushButton("Browse...")
+        new_row = QtWidgets.QHBoxLayout()
+        new_row.addWidget(self.new_shapefile_input)
+        new_row.addWidget(self.new_shapefile_browse_btn)
+
+        self.existing_shapefile_input = QtWidgets.QLineEdit()
+        self.existing_shapefile_input.setPlaceholderText("Optional existing .shp to append this lot")
+        self.existing_shapefile_browse_btn = QtWidgets.QPushButton("Browse...")
+        existing_row = QtWidgets.QHBoxLayout()
+        existing_row.addWidget(self.existing_shapefile_input)
+        existing_row.addWidget(self.existing_shapefile_browse_btn)
+
+        output_layout.addRow("Save new shapefile:", new_row)
+        output_layout.addRow("Add to existing shapefile:", existing_row)
+
+        self.new_shapefile_browse_btn.clicked.connect(self.browse_new_shapefile)
+        self.existing_shapefile_browse_btn.clicked.connect(self.browse_existing_shapefile)
+        self.verticalLayout.insertWidget(1, self.output_group)
+
+    def browse_new_shapefile(self):
+        file_path, _ = QFileDialog.getSaveFileName(self, "Save Lot Shapefile", "", "Shapefiles (*.shp)")
+        if file_path:
+            self.new_shapefile_input.setText(self.ensure_shp_extension(file_path))
+            self.existing_shapefile_input.clear()
+
+    def browse_existing_shapefile(self):
+        file_path, _ = QFileDialog.getOpenFileName(self, "Choose Existing Lot Shapefile", "", "Shapefiles (*.shp)")
+        if file_path:
+            self.existing_shapefile_input.setText(file_path)
+            self.new_shapefile_input.clear()
+
+    def ensure_shp_extension(self, file_path):
+        if file_path and os.path.splitext(file_path)[1].lower() != '.shp':
+            return f"{file_path}.shp"
+        return file_path
 
     def setup_table_paste_controls(self):
         self.table_format_guide = QtWidgets.QLabel(
@@ -813,6 +864,8 @@ class LotPlotterDialog(QtWidgets.QDialog, FORM_CLASS):
             'province': self.province_detail_combo.currentText(),
             'municipality': self.municipality_combo.currentText(),
             'barangay': self.barangay_combo.currentText(),
+            'new_shapefile': self.new_shapefile_input.text(),
+            'existing_shapefile': self.existing_shapefile_input.text(),
             'selected_tie_values': self.selected_tie_values,
             'results': self.results_text.toPlainText(),
         }
@@ -855,6 +908,9 @@ class LotPlotterDialog(QtWidgets.QDialog, FORM_CLASS):
                 self.on_detail_municipality_changed(self.municipality_combo.currentIndex())
             if barangay_text:
                 self.barangay_combo.setCurrentText(barangay_text)
+
+            self.new_shapefile_input.setText(state.get('new_shapefile', ''))
+            self.existing_shapefile_input.setText(state.get('existing_shapefile', ''))
 
             rows = state.get('rows') or []
             try:
@@ -1412,7 +1468,10 @@ class LotPlotterDialog(QtWidgets.QDialog, FORM_CLASS):
             self.results_text.setText(results)
             
             # Create and add layer to map
-            self.create_lot_layer(lot_coordinates, metadata, crs_authid, crs_zone, crs_info.get('force_unknown', False))
+            output_status = self.create_lot_layer(lot_coordinates, metadata, crs_authid, crs_zone, crs_info.get('force_unknown', False))
+            if output_status:
+                results += f"\n\n=== OUTPUT ===\n{output_status}"
+                self.results_text.setText(results)
             
             QtWidgets.QMessageBox.information(self, "Success", 
                 f"Lot plotted successfully!\nArea: {area:.2f} sq units\nClosure Error: {closure_error:.4f}")
@@ -1530,23 +1589,8 @@ class LotPlotterDialog(QtWidgets.QDialog, FORM_CLASS):
                 QtWidgets.QMessageBox.critical(self, "Error", 
                     f"Failed to export: {str(e)}")
     
-    def create_lot_layer(self, coordinates, metadata, crs_authid=None, crs_zone="", force_unknown_crs=False):
-        """Create a vector layer and add the lot polygon"""
-        if not self.iface:
-            return
-        
-        if force_unknown_crs:
-            crs_authid = ""
-            layer_uri = "Polygon"
-        elif crs_authid:
-            layer_uri = f"Polygon?crs={crs_authid}"
-        else:
-            project_crs = QgsProject.instance().crs()
-            crs_authid = project_crs.authid() if project_crs and project_crs.isValid() else "EPSG:4326"
-            layer_uri = f"Polygon?crs={crs_authid}"
-        layer = QgsVectorLayer(layer_uri, "Lot Boundary", "memory")
-        provider = layer.dataProvider()
-        provider.addAttributes([
+    def lot_layer_fields(self):
+        return [
             QgsField("lot_id", QVariant.String),
             QgsField("lot_name", QVariant.String),
             QgsField("ge_name", QVariant.String),
@@ -1568,48 +1612,122 @@ class LotPlotterDialog(QtWidgets.QDialog, FORM_CLASS):
             QgsField("tie_name", QVariant.String),
             QgsField("crs_authid", QVariant.String),
             QgsField("crs_zone", QVariant.String),
-        ])
-        layer.updateFields()
-        
-        # Create feature with polygon geometry
+        ]
+
+    def lot_layer_uri(self, crs_authid=None, force_unknown_crs=False):
+        if force_unknown_crs:
+            return "Polygon", ""
+        if crs_authid:
+            return f"Polygon?crs={crs_authid}", crs_authid
+        project_crs = QgsProject.instance().crs()
+        authid = project_crs.authid() if project_crs and project_crs.isValid() else "EPSG:4326"
+        return f"Polygon?crs={authid}", authid
+
+    def create_lot_feature(self, fields, coordinates, metadata, crs_authid="", crs_zone=""):
         points = [QgsPointXY(x, y) for x, y in self.display_lot_coordinates(coordinates)]
         points.append(QgsPointXY(points[0].x(), points[0].y()))  # Close polygon
-        
+
         feature = QgsFeature()
+        feature.setFields(fields)
         geometry = QgsGeometry.fromPolygonXY([points])
         feature.setGeometry(geometry)
-        feature.setAttributes([
-            metadata.get('lot_id', self.current_lot_id),
-            metadata.get('lot_name', ''),
-            metadata.get('ge_name', ''),
-            metadata.get('survey_no', ''),
-            metadata.get('survey_dt', ''),
-            metadata.get('type', ''),
-            metadata.get('claimant', ''),
-            metadata.get('island', ''),
-            metadata.get('province', ''),
-            metadata.get('mun_city', ''),
-            metadata.get('barangay', ''),
-            geometry.area(),
-            metadata.get('area_sqm', geometry.area()),
-            geometry.length(),
-            self.calculate_closure_error(coordinates),
-            max(len(coordinates) - 1, 0),
-            metadata.get('tie_north'),
-            metadata.get('tie_east'),
-            metadata.get('tie_name', ''),
-            crs_authid,
-            crs_zone,
-        ])
+        values = {
+            'lot_id': metadata.get('lot_id', self.current_lot_id),
+            'lot_name': metadata.get('lot_name', ''),
+            'ge_name': metadata.get('ge_name', ''),
+            'survey_no': metadata.get('survey_no', ''),
+            'survey_dt': metadata.get('survey_dt', ''),
+            'type': metadata.get('type', ''),
+            'claimant': metadata.get('claimant', ''),
+            'island': metadata.get('island', ''),
+            'province': metadata.get('province', ''),
+            'mun_city': metadata.get('mun_city', ''),
+            'barangay': metadata.get('barangay', ''),
+            'area': geometry.area(),
+            'area_sqm': metadata.get('area_sqm', geometry.area()),
+            'perimeter': geometry.length(),
+            'closure': self.calculate_closure_error(coordinates),
+            'corners': max(len(coordinates) - 1, 0),
+            'tie_north': metadata.get('tie_north'),
+            'tie_east': metadata.get('tie_east'),
+            'tie_name': metadata.get('tie_name', ''),
+            'crs_authid': crs_authid,
+            'crs_zone': crs_zone,
+        }
+        for name, value in values.items():
+            if fields.indexFromName(name) != -1:
+                feature.setAttribute(name, value)
+        return feature
+
+    def add_lot_fields(self, layer):
+        existing_names = {field.name().lower() for field in layer.fields()}
+        missing = [field for field in self.lot_layer_fields() if field.name().lower() not in existing_names]
+        if missing:
+            layer.dataProvider().addAttributes(missing)
+            layer.updateFields()
+
+    def add_layer_to_project(self, layer):
+        QgsProject.instance().addMapLayer(layer)
+        if self.iface:
+            self.iface.mapCanvas().zoomToFeatureExtent(layer.extent())
+            self.iface.mapCanvas().refresh()
+
+    def write_new_shapefile(self, layer, file_path):
+        file_path = self.ensure_shp_extension(file_path)
+        result = QgsVectorFileWriter.writeAsVectorFormat(layer, file_path, "UTF-8", layer.crs(), "ESRI Shapefile")
+        error_code = result[0] if isinstance(result, tuple) else result
+        if error_code != QgsVectorFileWriter.NoError:
+            message = result[1] if isinstance(result, tuple) and len(result) > 1 else "Unable to write shapefile."
+            raise ValueError(f"Failed to save shapefile: {message}")
+        saved_layer = QgsVectorLayer(file_path, os.path.splitext(os.path.basename(file_path))[0], "ogr")
+        if not saved_layer.isValid():
+            raise ValueError("The shapefile was written, but QGIS could not load it.")
+        self.add_layer_to_project(saved_layer)
+        return f"Saved new shapefile: {file_path}"
+
+    def append_existing_shapefile(self, file_path, coordinates, metadata, crs_authid="", crs_zone=""):
+        file_path = self.ensure_shp_extension(file_path)
+        if not os.path.exists(file_path):
+            raise ValueError(f"Existing shapefile not found: {file_path}")
+        layer = QgsVectorLayer(file_path, os.path.splitext(os.path.basename(file_path))[0], "ogr")
+        if not layer.isValid():
+            raise ValueError("Could not open the existing shapefile.")
+
+        self.add_lot_fields(layer)
+        feature = self.create_lot_feature(layer.fields(), coordinates, metadata, crs_authid, crs_zone)
+        if not layer.dataProvider().addFeatures([feature])[0]:
+            raise ValueError("Could not add the lot to the existing shapefile.")
+        layer.updateExtents()
+        self.add_layer_to_project(layer)
+        return f"Added lot to existing shapefile: {file_path}"
+
+    def create_lot_layer(self, coordinates, metadata, crs_authid=None, crs_zone="", force_unknown_crs=False):
+        """Create a vector layer, save to shapefile, or append to an existing shapefile."""
+        if not self.iface:
+            return ""
+
+        layer_uri, resolved_crs_authid = self.lot_layer_uri(crs_authid, force_unknown_crs)
+        crs_authid = resolved_crs_authid
+        existing_path = self.existing_shapefile_input.text().strip()
+        new_path = self.new_shapefile_input.text().strip()
+
+        if existing_path:
+            return self.append_existing_shapefile(existing_path, coordinates, metadata, crs_authid, crs_zone)
+
+        layer = QgsVectorLayer(layer_uri, "Lot Boundary", "memory")
+        provider = layer.dataProvider()
+        provider.addAttributes(self.lot_layer_fields())
+        layer.updateFields()
+
+        feature = self.create_lot_feature(layer.fields(), coordinates, metadata, crs_authid, crs_zone)
         provider.addFeatures([feature])
         layer.updateExtents()
-        
-        # Add layer to map
-        QgsProject.instance().addMapLayer(layer)
-        
-        # Zoom to layer
-        self.iface.mapCanvas().zoomToFeatureExtent(layer.extent())
-        self.iface.mapCanvas().refresh()
+
+        if new_path:
+            return self.write_new_shapefile(layer, new_path)
+
+        self.add_layer_to_project(layer)
+        return "Created temporary memory layer."
 
 
 class LotPlotter:
