@@ -8,7 +8,18 @@ from qgis.PyQt import QtWidgets, uic
 from qgis.PyQt.QtWidgets import QFileDialog
 from qgis.PyQt.QtCore import QEvent, QSettings, Qt, QVariant
 from qgis.PyQt.QtGui import QBrush, QColor, QFont, QKeySequence, QPen
-from qgis.core import QgsProject, QgsVectorLayer, QgsFeature, QgsGeometry, QgsPointXY, QgsField, QgsVectorFileWriter
+from qgis.core import (
+    QgsProject,
+    QgsVectorLayer,
+    QgsFeature,
+    QgsGeometry,
+    QgsPointXY,
+    QgsField,
+    QgsVectorFileWriter,
+    QgsFillSymbol,
+    QgsMarkerLineSymbolLayer,
+    QgsMarkerSymbol,
+)
 from qgis.gui import QgisInterface
 
 PLUGIN_DIR = os.path.dirname(__file__)
@@ -1906,7 +1917,38 @@ class LotPlotterDialog(QtWidgets.QDialog, FORM_CLASS):
             layer.dataProvider().addAttributes(missing)
             layer.updateFields()
 
+    def apply_lot_symbology(self, layer):
+        yellow = "255,255,0,255"
+        transparent_yellow = "255,255,0,0"
+        symbol = QgsFillSymbol.createSimple({
+            'color': transparent_yellow,
+            'outline_color': yellow,
+            'outline_width': '0.8',
+            'outline_style': 'solid',
+        })
+        vertex_symbol = QgsMarkerSymbol.createSimple({
+            'name': 'circle',
+            'color': transparent_yellow,
+            'outline_color': yellow,
+            'outline_width': '0.6',
+            'size': '3.2',
+        })
+        vertex_layer = QgsMarkerLineSymbolLayer()
+        vertex_layer.setPlacement(QgsMarkerLineSymbolLayer.Vertex)
+        vertex_layer.setSubSymbol(vertex_symbol)
+        symbol.appendSymbolLayer(vertex_layer)
+        layer.renderer().setSymbol(symbol)
+        layer.triggerRepaint()
+
+    def save_lot_style(self, layer, shapefile_path):
+        style_path = os.path.splitext(shapefile_path)[0] + ".qml"
+        try:
+            layer.saveNamedStyle(style_path)
+        except Exception:
+            pass
+
     def add_layer_to_project(self, layer):
+        self.apply_lot_symbology(layer)
         QgsProject.instance().addMapLayer(layer)
         if self.iface:
             self.iface.mapCanvas().zoomToFeatureExtent(layer.extent())
@@ -1922,6 +1964,8 @@ class LotPlotterDialog(QtWidgets.QDialog, FORM_CLASS):
         saved_layer = QgsVectorLayer(file_path, os.path.splitext(os.path.basename(file_path))[0], "ogr")
         if not saved_layer.isValid():
             raise ValueError("The shapefile was written, but QGIS could not load it.")
+        self.apply_lot_symbology(saved_layer)
+        self.save_lot_style(saved_layer, file_path)
         self.add_layer_to_project(saved_layer)
         return f"Saved new shapefile: {file_path}"
 
@@ -1938,6 +1982,8 @@ class LotPlotterDialog(QtWidgets.QDialog, FORM_CLASS):
         if not layer.dataProvider().addFeatures([feature])[0]:
             raise ValueError("Could not add the lot to the existing shapefile.")
         layer.updateExtents()
+        self.apply_lot_symbology(layer)
+        self.save_lot_style(layer, file_path)
         self.add_layer_to_project(layer)
         return f"Added lot to existing shapefile: {file_path}"
 
